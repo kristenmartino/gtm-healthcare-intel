@@ -47,65 +47,8 @@ function generateGTMData() {
 
 const GTM_DATA = generateGTMData();
 
-function buildDataSummary() {
-  const d = GTM_DATA;
-  const lines = [
-    `GTM Analytics Dataset — Specialty EHR SaaS Company`,
-    `Sales Reps: ${d.reps.join(", ")}`,
-    `Specialties: ${d.specialties.join(", ")}`,
-    `Lead Sources: ${d.sources.join(", ")}`,
-    `Reporting Period: Q3 2024 – Q1 2025`,
-    `Total Deals in Pipeline: ${d.deals.length}`,
-    ``,
-    `=== DEAL-LEVEL DATA ===`,
-  ];
-
-  d.reps.forEach(rep => {
-    const repDeals = d.deals.filter(x => x.rep === rep);
-    const won = repDeals.filter(x => x.won);
-    const lost = repDeals.filter(x => x.lost);
-    const open = repDeals.filter(x => !x.won && !x.lost);
-    const wonAcv = won.reduce((a, x) => a + x.acv, 0);
-    const openAcv = open.reduce((a, x) => a + x.acv, 0);
-    const avgCycle = won.length > 0 ? Math.round(won.reduce((a, x) => a + x.daysInPipeline, 0) / won.length) : 0;
-    lines.push(`\n${rep}: ${repDeals.length} deals total | ${won.length} won ($${wonAcv.toLocaleString()} ACV) | ${lost.length} lost | ${open.length} open ($${openAcv.toLocaleString()} pipeline) | Avg cycle: ${avgCycle} days`);
-
-    d.specialties.forEach(spec => {
-      const specDeals = repDeals.filter(x => x.specialty === spec);
-      const specWon = specDeals.filter(x => x.won);
-      if (specDeals.length > 0) {
-        lines.push(`  ${spec}: ${specDeals.length} deals, ${specWon.length} won, win rate ${specDeals.length > 0 ? Math.round(specWon.length / (specWon.length + specDeals.filter(x => x.lost).length || 1) * 100) : 0}%`);
-      }
-    });
-
-    d.sources.forEach(src => {
-      const srcDeals = repDeals.filter(x => x.source === src);
-      if (srcDeals.length > 0) {
-        lines.push(`  Source ${src}: ${srcDeals.length} deals, ${srcDeals.filter(x => x.won).length} won`);
-      }
-    });
-  });
-
-  lines.push(`\n=== QUARTERLY PIPELINE SUMMARY ===`);
-  d.quarters.forEach(q => {
-    const qDeals = d.deals.filter(x => x.quarter === q);
-    const won = qDeals.filter(x => x.won);
-    const lost = qDeals.filter(x => x.lost);
-    lines.push(`${q}: ${qDeals.length} deals | ${won.length} won ($${won.reduce((a, x) => a + x.acv, 0).toLocaleString()}) | ${lost.length} lost | Win rate: ${Math.round(won.length / (won.length + lost.length || 1) * 100)}%`);
-  });
-
-  lines.push(`\n=== MARKETING FUNNEL ===`);
-  d.marketing.forEach(m => {
-    lines.push(`${m.quarter}: ${m.mqls} MQLs → ${m.sqls} SQLs → ${m.demosBooked} demos | Pipeline: $${m.pipelineGenerated.toLocaleString()} | Spend: $${m.spend.toLocaleString()} | CPL: $${Math.round(m.spend / m.mqls)}`);
-  });
-
-  lines.push(`\n=== CHURN & RETENTION BY SPECIALTY ===`);
-  d.churn.forEach(c => {
-    lines.push(`${c.specialty}: ${c.customersStart} customers, ${c.churned} churned (${(c.churned / c.customersStart * 100).toFixed(1)}%), ${c.expanded} expanded, NRR: ${c.nrr.toFixed(1)}% | Top reasons: ${c.topReasons.join(", ")}`);
-  });
-
-  return lines.join("\n");
-}
+// Note: buildDataSummary and system prompt moved to /api/askgtm/route.js (server-side)
+// Client only has generateGTMData for the smart insights display
 
 function SmartInsights() {
   const d = GTM_DATA;
@@ -159,7 +102,8 @@ export default function AskGTM() {
   const [showInsights, setShowInsights] = useState(true);
   const chatRef = useRef(null);
   const insights = useMemo(() => SmartInsights(), []);
-  const dataSummary = useMemo(() => buildDataSummary(), []);
+  // Data and system prompt are server-side only (see /api/askgtm/route.js)
+  // Client sends only the question — no data or prompt exposed in browser
 
   useEffect(() => {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
@@ -183,13 +127,10 @@ export default function AskGTM() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/ask", {
+      const response = await fetch("/api/askgtm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          system: `You are a GTM analytics assistant for a specialty EHR SaaS company. You answer questions about pipeline, bookings, sales performance, marketing attribution, and customer retention using the data provided. Be concise and specific — use exact numbers, percentages, and dollar amounts. When comparing reps, use last names only. Frame answers in terms of actionable insights. Always end with one specific recommendation the GTM team should act on.\n\nGTM DATA:\n${dataSummary}`,
-          messages: [{ role: "user", content: q }],
-        }),
+        body: JSON.stringify({ question: q }),
       });
       const data = await response.json();
       const reply = data.content?.map(c => c.text || "").join("\n") || "I wasn't able to process that query. Please try rephrasing.";

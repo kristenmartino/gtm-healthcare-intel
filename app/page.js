@@ -182,6 +182,40 @@ export default function Home() {
           ))}
         </div>
 
+        {/* Supporting resources */}
+        <div style={{ marginTop: 20, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          <Link href="/methodology" style={{ textDecoration: "none", color: "inherit" }}>
+            <div style={{ background: "#111b2e", borderRadius: 10, padding: "16px 18px", border: "1px solid #1e293b", cursor: "pointer", transition: "border-color 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = "#38bdf860"}
+              onMouseLeave={e => e.currentTarget.style.borderColor = "#1e293b"}
+            >
+              <div style={{ fontSize: 16, marginBottom: 6 }}>{`</>`}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>SQL Methodology</div>
+              <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>Production-ready SQL for every GTM metric — with edge case handling and cross-team conflict resolution notes.</div>
+            </div>
+          </Link>
+          <Link href="/q1-review" style={{ textDecoration: "none", color: "inherit" }}>
+            <div style={{ background: "#111b2e", borderRadius: 10, padding: "16px 18px", border: "1px solid #1e293b", cursor: "pointer", transition: "border-color 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = "#f59e0b60"}
+              onMouseLeave={e => e.currentTarget.style.borderColor = "#1e293b"}
+            >
+              <div style={{ fontSize: 16, marginBottom: 6 }}>📊</div>
+              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Q1 Performance Review</div>
+              <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>Analytical memo with segment breakdowns, root cause analysis, and prioritized recommendations — the actual deliverable.</div>
+            </div>
+          </Link>
+          <a href="https://github.com/kristenmartino/gtm-healthcare-intel/tree/main/data/pipeline" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", color: "inherit" }}>
+            <div style={{ background: "#111b2e", borderRadius: 10, padding: "16px 18px", border: "1px solid #1e293b", cursor: "pointer", transition: "border-color 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = "#10b98160"}
+              onMouseLeave={e => e.currentTarget.style.borderColor = "#1e293b"}
+            >
+              <div style={{ fontSize: 16, marginBottom: 6 }}>🔧</div>
+              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Data Pipeline (GitHub)</div>
+              <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>Python ETL pipeline processing real CMS NPPES + Census data into SpectrumIQ opportunity scores. DuckDB + pandas.</div>
+            </div>
+          </a>
+        </div>
+
         {/* About section */}
         <div style={{ marginTop: 32, padding: 20, background: "#111b2e", borderRadius: 10, border: "1px solid #1e293b" }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>About This Portfolio</div>
