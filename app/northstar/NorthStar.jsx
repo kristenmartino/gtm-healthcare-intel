@@ -223,50 +223,193 @@ const MATURITY_LEVELS = [
 ];
 
 // ═══════════════════════════════════════════════════════════════
-// PRESCRIPTIVE ALERTS DATA
+// ANOMALY DETECTION ENGINE
+// Generates prescriptive alerts from metric time-series data
+// using rolling mean ± 1.5σ deviation detection
 // ═══════════════════════════════════════════════════════════════
-const ALERTS = [
-  {
-    severity: "critical",
-    title: "Orthopedics win rate dropped 12pp this month",
-    insight: "3 of 5 lost deals had proposals sitting in legal review for 20+ days. Median legal review for Won deals is 6 days.",
-    recommendation: "Implement escalation protocol for proposals in legal review > 10 days. Estimated recovery: $180K pipeline.",
-    metric: "Win Rate",
-    timestamp: "2 hours ago",
-  },
-  {
-    severity: "warning",
-    title: "Marketing-sourced pipeline up 28% but demo conversion flat",
-    insight: "Lead volume increased from paid channels, but demo-to-opportunity conversion stayed at 18% (vs. 26% for inbound organic). Paid leads showing lower ICP fit scores.",
-    recommendation: "Review paid campaign targeting criteria and tighten ICP scoring threshold. Consider SDR pre-qualification call before demo scheduling for paid leads.",
-    metric: "Demo-to-Close Conversion",
-    timestamp: "6 hours ago",
-  },
-  {
-    severity: "opportunity",
-    title: "Dermatology segment over-performing — 34% win rate vs. 22% average",
-    insight: "Derm practices close 40% faster and have 15% higher ACV than portfolio average. Current territory allocation only assigns 2 of 12 reps to Derm.",
-    recommendation: "Reallocate 1-2 reps from General to Derm territory. Model suggests +$420K quarterly bookings at current conversion rates.",
-    metric: "Pipeline (Qualified)",
-    timestamp: "1 day ago",
-  },
-  {
-    severity: "warning",
-    title: "Sales team spreadsheet usage spiked this week",
-    insight: "4 of 6 tracked shadow spreadsheets were edited in the last 48 hours. Sales East pipeline tracker now diverges from Salesforce by $340K.",
-    recommendation: "Schedule 15-min data trust check-in with Sales East manager. Investigate whether CRM data freshness or field usability is driving offline tracking.",
-    metric: "Adoption Score",
-    timestamp: "4 hours ago",
-  },
-  {
-    severity: "opportunity",
-    title: "Referral channel producing 2.1x higher LTV than average",
-    insight: "Referral-sourced customers have 94% 12-month retention vs. 81% overall. NRR for referral cohort is 118% vs. 104% blended.",
-    recommendation: "Invest in structured referral program. Even 20% increase in referral volume projects to +$290K incremental ARR with lower CAC.",
-    metric: "Net Revenue Retention (NRR)",
-    timestamp: "1 day ago",
-  },
-];
+
+function seededRand(seed) { let s = seed; return () => { s = (s * 16807 + 3) % 2147483647; return s / 2147483647; }; }
+
+function generateMetricTimeSeries() {
+  const r = seededRand(77);
+  const weeks = 12;
+  const specialties = ["Dermatology", "Orthopedics", "Gastroenterology", "Ophthalmology"];
+  const sources = ["Inbound", "Outbound", "Referral", "Paid", "Trade Show"];
+  const series = {};
+
+  // Win Rate by specialty (weekly)
+  specialties.forEach(s => {
+    const base = s === "Dermatology" ? 32 : s === "Orthopedics" ? 24 : s === "Gastro" ? 26 : 22;
+    series[`win_rate_${s}`] = {
+      metric: "Win Rate", segment: s, unit: "%",
+      values: Array.from({ length: weeks }, (_, i) => {
+        let v = base + (r() - 0.5) * 8;
+        // Inject anomaly: Ortho drops in last 2 weeks
+        if (s === "Orthopedics" && i >= 10) v -= 12;
+        // Inject trend: Derm rising
+        if (s === "Dermatology") v += i * 0.4;
+        return Math.round(v * 10) / 10;
+      })
+    };
+  });
+
+  // Pipeline by source (weekly ACV in $K)
+  sources.forEach(s => {
+    const base = s === "Inbound" ? 280 : s === "Referral" ? 180 : s === "Paid" ? 150 : s === "Outbound" ? 120 : 90;
+    series[`pipeline_${s}`] = {
+      metric: "Pipeline", segment: s, unit: "$K",
+      values: Array.from({ length: weeks }, (_, i) => {
+        let v = base + (r() - 0.5) * 60;
+        // Inject: Paid volume spike but quality drop
+        if (s === "Paid" && i >= 9) v += 70;
+        return Math.round(v);
+      })
+    };
+  });
+
+  // Demo conversion (weekly %)
+  series["demo_conversion_overall"] = {
+    metric: "Demo-to-Close", segment: "All", unit: "%",
+    values: Array.from({ length: weeks }, (_, i) => {
+      let v = 24 + (r() - 0.5) * 6;
+      // Flat despite pipeline increase (divergence alert)
+      return Math.round(v * 10) / 10;
+    })
+  };
+
+  // Adoption score (weekly %)
+  series["adoption_sales"] = {
+    metric: "Adoption", segment: "Sales", unit: "%",
+    values: Array.from({ length: weeks }, (_, i) => {
+      let v = 55 + i * 1.2 + (r() - 0.5) * 5;
+      // Inject: sudden drop last week
+      if (i === 11) v -= 15;
+      return Math.round(v);
+    })
+  };
+
+  // NRR by specialty (monthly → last 4 months)
+  specialties.forEach(s => {
+    const base = s === "Dermatology" ? 112 : s === "Orthopedics" ? 104 : 108;
+    series[`nrr_${s}`] = {
+      metric: "NRR", segment: s, unit: "%",
+      values: Array.from({ length: 4 }, (_, i) => {
+        let v = base + (r() - 0.5) * 4;
+        // Referral cohort outperformance
+        if (s === "Dermatology") v += i * 0.8;
+        return Math.round(v * 10) / 10;
+      })
+    };
+  });
+
+  // Spreadsheet edits (weekly count)
+  series["spreadsheet_edits"] = {
+    metric: "Shadow Spreadsheets", segment: "Sales", unit: "edits",
+    values: Array.from({ length: weeks }, (_, i) => {
+      let v = 8 - i * 0.3 + (r() - 0.5) * 3;
+      // Spike last week
+      if (i === 11) v += 10;
+      return Math.max(0, Math.round(v));
+    })
+  };
+
+  return series;
+}
+
+function detectAnomalies(series) {
+  const alerts = [];
+  const now = ["2 hours ago", "4 hours ago", "6 hours ago", "1 day ago", "1 day ago", "2 days ago"];
+  let timeIdx = 0;
+
+  Object.entries(series).forEach(([key, s]) => {
+    const vals = s.values;
+    const n = vals.length;
+    if (n < 4) return;
+
+    // Rolling window: use all but last value for baseline
+    const baseline = vals.slice(0, -1);
+    const current = vals[n - 1];
+    const mean = baseline.reduce((a, b) => a + b, 0) / baseline.length;
+    const std = Math.sqrt(baseline.reduce((a, v) => a + (v - mean) ** 2, 0) / baseline.length) || 1;
+    const zScore = (current - mean) / std;
+    const deviation = current - mean;
+    const deviationPct = ((current - mean) / mean * 100);
+
+    // Alert if |z| > 1.5
+    if (Math.abs(zScore) < 1.5) return;
+
+    const isNegative = zScore < 0;
+    const metricName = s.metric;
+    const segment = s.segment;
+
+    // Determine if negative deviation is bad (depends on metric)
+    const lowerIsBad = ["Win Rate", "NRR", "Adoption", "Demo-to-Close"].includes(metricName);
+    const higherIsBad = ["Shadow Spreadsheets"].includes(metricName);
+    const isBad = (lowerIsBad && isNegative) || (higherIsBad && !isNegative);
+    const isGood = (lowerIsBad && !isNegative) || (higherIsBad && isNegative);
+
+    // Build alert
+    const severity = Math.abs(zScore) > 2.5 ? "critical" : isBad ? "warning" : "opportunity";
+
+    // Template-generate insight and recommendation
+    let title, insight, recommendation;
+
+    if (metricName === "Win Rate" && isBad) {
+      title = `${segment} win rate dropped ${Math.abs(deviation).toFixed(1)}pp below rolling average`;
+      insight = `Current: ${current}${s.unit} vs. ${mean.toFixed(1)}${s.unit} trailing avg (z-score: ${zScore.toFixed(2)}). This ${Math.abs(zScore) > 2 ? "significant" : "notable"} deviation suggests a systemic issue beyond normal variance.`;
+      recommendation = segment === "Orthopedics"
+        ? `Investigate deal-level loss reasons for ${segment}. Prior analysis suggests legal review bottlenecks — check if proposals in legal review > 10 days correlate with recent losses.`
+        : `Review recent ${segment} losses for pattern: competitor displacement, pricing objection, or process friction. Schedule win/loss interviews on the 3 most recent losses.`;
+    } else if (metricName === "Win Rate" && isGood) {
+      title = `${segment} win rate up ${deviation.toFixed(1)}pp — outperforming portfolio`;
+      insight = `Current: ${current}${s.unit} vs. ${mean.toFixed(1)}${s.unit} trailing avg. ${segment} is converting at ${((current / mean - 1) * 100).toFixed(0)}% above historical baseline.`;
+      recommendation = `${segment} territory may be under-resourced relative to opportunity. Model current rep allocation and evaluate if shifting coverage could capture incremental bookings.`;
+    } else if (metricName === "Pipeline" && !isNegative) {
+      title = `${segment} pipeline volume up ${deviationPct.toFixed(0)}% above baseline`;
+      insight = `Current week: ${current}${s.unit} vs. ${mean.toFixed(0)}${s.unit} rolling avg. Volume increase of ${deviationPct.toFixed(0)}% may indicate channel momentum or quality dilution.`;
+      recommendation = `Cross-reference with conversion rate for ${segment}-sourced deals. If conversion is flat or declining despite volume increase, tighten qualification criteria.`;
+    } else if (metricName === "Shadow Spreadsheets" && !isNegative) {
+      title = `Shadow spreadsheet activity spiked to ${current} edits (${deviationPct.toFixed(0)}% above avg)`;
+      insight = `${current} edits this week vs. ${mean.toFixed(0)} weekly average. This reversal in the downward adoption trend suggests a trust or usability issue with standardized reports.`;
+      recommendation = `Schedule data trust check-in with Sales team leads. Identify which specific reports are being bypassed and why. Common causes: stale data, missing fields, or reports that don't answer daily workflow questions.`;
+    } else if (metricName === "Adoption" && isBad) {
+      title = `${segment} reporting adoption dropped ${Math.abs(deviation).toFixed(0)}pp`;
+      insight = `Adoption fell to ${current}${s.unit} from ${mean.toFixed(0)}${s.unit} trailing average. This coincides with increased shadow spreadsheet activity.`;
+      recommendation = `Investigate root cause: data freshness issue, broken report, or organizational change? Run report-level engagement analysis to identify which specific dashboards lost usage.`;
+    } else if (metricName === "NRR" && isGood) {
+      title = `${segment} NRR trending up to ${current}${s.unit}`;
+      insight = `NRR at ${current}${s.unit} vs. ${mean.toFixed(1)}${s.unit} baseline. Expansion revenue in ${segment} is outpacing contraction and churn.`;
+      recommendation = `Analyze expansion drivers: is this upsell, cross-sell, or seat expansion? If repeatable, document the playbook and test it in lower-NRR segments.`;
+    } else {
+      title = `${metricName} ${segment}: ${isNegative ? "below" : "above"} expected range`;
+      insight = `Current: ${current}${s.unit} vs. ${mean.toFixed(1)}${s.unit} avg (${deviationPct > 0 ? "+" : ""}${deviationPct.toFixed(1)}%, z=${zScore.toFixed(2)}).`;
+      recommendation = `Investigate deviation cause. Check for data quality issues before actioning.`;
+    }
+
+    alerts.push({
+      severity,
+      title,
+      insight,
+      recommendation,
+      metric: metricName,
+      segment,
+      current,
+      mean: Math.round(mean * 10) / 10,
+      zScore: Math.round(zScore * 100) / 100,
+      timestamp: now[timeIdx % now.length],
+    });
+    timeIdx++;
+  });
+
+  // Sort: critical first, then warning, then opportunity
+  const order = { critical: 0, warning: 1, opportunity: 2 };
+  alerts.sort((a, b) => order[a.severity] - order[b.severity]);
+
+  return alerts;
+}
+
+const METRIC_SERIES = generateMetricTimeSeries();
+const ALERTS = detectAnomalies(METRIC_SERIES);
 
 // ═══════════════════════════════════════════════════════════════
 // COMPONENTS
@@ -588,9 +731,15 @@ export default function NorthStar() {
         {tab === "prescriptive" && (
           <div>
             <div style={{ marginBottom: 16, padding: 14, background: "#111b2e", borderRadius: 10, border: "1px solid #1e293b" }}>
-              <p style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6, margin: 0 }}>
-                These alerts demonstrate what prescriptive analytics looks like in practice. Each combines a metric anomaly, root cause analysis, and an actionable recommendation with estimated impact. In production, these would be generated automatically from real-time GTM data.
-              </p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <p style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6, margin: 0, flex: 1 }}>
+                  These alerts are <strong style={{ color: "#10b981" }}>dynamically generated</strong> by an anomaly detection engine that computes rolling mean ± 1.5σ across metric time-series data. Each alert includes the z-score that triggered it, a templated root cause insight, and a prescriptive recommendation.
+                </p>
+                <div style={{ textAlign: "right", marginLeft: 20, flexShrink: 0 }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: "#fbbf24" }}>{ALERTS.length}</div>
+                  <div style={{ fontSize: 10, color: "#475569" }}>active alerts</div>
+                </div>
+              </div>
             </div>
 
             <div style={{ display: "grid", gap: 12 }}>
@@ -606,6 +755,19 @@ export default function NorthStar() {
                     <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 4, background: "#1e293b", color: "#94a3b8" }}>{a.metric}</span>
                   </div>
 
+                  {/* Detection metadata */}
+                  <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 4, background: Math.abs(a.zScore) > 2 ? "#ef444418" : "#f59e0b18", color: Math.abs(a.zScore) > 2 ? "#ef4444" : "#f59e0b" }}>
+                      z = {a.zScore > 0 ? "+" : ""}{a.zScore}
+                    </span>
+                    <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 4, background: "#1e293b", color: "#64748b" }}>
+                      {a.segment} · current: {a.current}{a.metric === "Pipeline" ? "K" : "%"} · avg: {a.mean}{a.metric === "Pipeline" ? "K" : "%"}
+                    </span>
+                    <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 4, background: "#6366f118", color: "#a78bfa" }}>
+                      rolling window detection
+                    </span>
+                  </div>
+
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                     <div>
                       <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", marginBottom: 4 }}>Insight</div>
@@ -619,13 +781,21 @@ export default function NorthStar() {
                 </div>
               ))}
             </div>
+
+            {/* Detection methodology */}
+            <div style={{ marginTop: 16, padding: 14, background: "#111b2e", borderRadius: 8, border: "1px solid #1e293b" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#a78bfa", marginBottom: 4 }}>Detection Methodology</div>
+              <p style={{ fontSize: 11, color: "#475569", lineHeight: 1.6, margin: 0 }}>
+                Anomalies detected via rolling-window z-score analysis: for each metric × segment, the baseline is computed from all prior-period values (mean and σ). The current period value is compared against baseline — any deviation exceeding ±1.5σ triggers an alert. Severity is assigned by z-score magnitude: |z| &gt; 2.5 = critical, negative deviations on health metrics = warning, positive deviations = opportunity. Insight text and recommendations are template-generated based on the metric type, segment, and deviation direction. In production, this engine would run on a scheduled cadence against the data warehouse with alert routing to Slack channels by team.
+              </p>
+            </div>
           </div>
         )}
 
         {/* Footer */}
         <div style={{ marginTop: 24, padding: 16, background: "#111b2e", borderRadius: 10, border: "1px solid #1e293b" }}>
           <p style={{ fontSize: 11, color: "#475569", lineHeight: 1.6, margin: 0 }}>
-            <strong>About NorthStar:</strong> This project demonstrates the operational infrastructure required to make a GTM analytics function effective — not just the dashboards, but the governance, adoption, and maturity frameworks underneath them. All data is synthetic. Metric definitions are modeled on common Salesforce + HubSpot GTM data architectures. The prescriptive alerts represent the kind of AI-driven recommendations that become possible once metric standardization and data trust are established.
+            <strong>About NorthStar:</strong> This project demonstrates the operational infrastructure required to make a GTM analytics function effective — not just the dashboards, but the governance, adoption, and maturity frameworks underneath them. All data is synthetic. Metric definitions are modeled on common Salesforce + HubSpot GTM data architectures. Prescriptive alerts are dynamically generated by an anomaly detection engine using rolling-window z-score analysis on metric time-series data — not hardcoded.
           </p>
         </div>
       </div>

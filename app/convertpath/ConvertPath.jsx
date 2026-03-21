@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 function seededRandom(seed) { let s = seed; return () => { s = (s * 16807 + 0) % 2147483647; return s / 2147483647; }; }
 
@@ -79,6 +79,14 @@ export default function ConvertPath() {
   const [source, setSource] = useState("All");
   const [quarter, setQuarter] = useState("All");
   const [tab, setTab] = useState("funnel");
+  const [dealScores, setDealScores] = useState([]);
+
+  useEffect(() => {
+    fetch("/deal_scores.json")
+      .then(r => r.json())
+      .then(data => setDealScores(data))
+      .catch(() => {});
+  }, []);
 
   const filtered = useMemo(() => {
     return ALL_DEALS.filter(d =>
@@ -155,7 +163,7 @@ export default function ConvertPath() {
 
         {/* Tabs */}
         <div style={{ display: "flex", gap: 4, marginBottom: 20 }}>
-          {[["funnel", "Funnel"], ["source", "By Source"], ["velocity", "Velocity"]].map(([k, l]) => (
+          {[["funnel", "Funnel"], ["source", "By Source"], ["velocity", "Velocity"], ["health", "Deal Health"]].map(([k, l]) => (
             <button key={k} onClick={() => setTab(k)} style={{ padding: "8px 18px", borderRadius: 8, border: "none", background: tab === k ? "#6366f120" : "transparent", color: tab === k ? "#a78bfa" : "#64748b", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>{l}</button>
           ))}
         </div>
@@ -252,6 +260,83 @@ export default function ConvertPath() {
               })()}
               <MetricCard label="Total Won Revenue" value={`$${(totalACV / 1000000).toFixed(1)}M`} color="#10b981" sub={`${wonDeals.length} closed deals`} />
             </div>
+          </div>
+        )}
+
+        {tab === "health" && (
+          <div>
+            {dealScores.length === 0 ? (
+              <div style={{ background: "#111b2e", borderRadius: 12, padding: 24, border: "1px solid #1e293b", textAlign: "center" }}>
+                <div style={{ fontSize: 14, color: "#64748b" }}>Loading deal scores from ML pipeline...</div>
+              </div>
+            ) : (
+              <>
+                {/* Summary cards */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
+                  {[
+                    { tier: "Strong", color: "#10b981", icon: "●" },
+                    { tier: "On Track", color: "#38bdf8", icon: "●" },
+                    { tier: "Needs Attention", color: "#f59e0b", icon: "▲" },
+                    { tier: "At Risk", color: "#ef4444", icon: "▼" },
+                  ].map(t => {
+                    const deals = dealScores.filter(d => d.risk_tier === t.tier);
+                    const acv = deals.reduce((a, d) => a + d.acv, 0);
+                    return (
+                      <div key={t.tier} style={{ background: "#111b2e", borderRadius: 10, padding: 16, border: `1px solid ${t.color}30` }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: t.color }}>{t.icon} {t.tier}</div>
+                        <div style={{ fontSize: 24, fontWeight: 800, color: "#e2e8f0", marginTop: 4 }}>{deals.length}</div>
+                        <div style={{ fontSize: 12, color: "#64748b" }}>${(acv / 1000).toFixed(0)}K pipeline</div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Model info bar */}
+                <div style={{ fontSize: 11, color: "#475569", padding: "8px 12px", background: "#111b2e", borderRadius: 6, border: "1px solid #1e293b", marginBottom: 16, display: "flex", gap: 16 }}>
+                  <span><span style={{ color: "#a78bfa" }}>●</span> Model: Logistic Regression (L2)</span>
+                  <span>Features: engagement recency, stage stall, source, rep skill, ACV</span>
+                  <span>Scored: {dealScores.length} open deals</span>
+                </div>
+
+                {/* Deal table */}
+                <div style={{ background: "#111b2e", borderRadius: 12, border: "1px solid #1e293b", overflow: "hidden" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 0.7fr 0.6fr 0.5fr 0.6fr 0.4fr 1.2fr", padding: "12px 16px", borderBottom: "1px solid #1e293b", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#475569" }}>
+                    <span>Account</span><span>Rep</span><span>Specialty</span><span style={{ textAlign: "right" }}>ACV</span><span style={{ textAlign: "right" }}>Stage</span><span style={{ textAlign: "center" }}>Score</span><span>Recommendation</span>
+                  </div>
+                  {[...dealScores].sort((a, b) => a.deal_health_score - b.deal_health_score).map((d, i) => {
+                    const tc = d.risk_tier === "At Risk" ? "#ef4444" : d.risk_tier === "Needs Attention" ? "#f59e0b" : d.risk_tier === "On Track" ? "#38bdf8" : "#10b981";
+                    return (
+                      <div key={d.deal_id} style={{
+                        display: "grid", gridTemplateColumns: "1fr 0.7fr 0.6fr 0.5fr 0.6fr 0.4fr 1.2fr", padding: "10px 16px", borderBottom: "1px solid #1e293b",
+                        background: d.risk_tier === "At Risk" ? "#ef444408" : "transparent", alignItems: "center",
+                      }}>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 600 }}>{d.account_name.length > 28 ? d.account_name.slice(0, 28) + "..." : d.account_name}</div>
+                          <div style={{ fontSize: 10, color: "#475569" }}>{d.deal_id}</div>
+                        </div>
+                        <span style={{ fontSize: 12 }}>{d.rep.split(" ")[1]}</span>
+                        <span style={{ fontSize: 12, color: "#94a3b8" }}>{d.specialty}</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, textAlign: "right" }}>${(d.acv / 1000).toFixed(0)}K</span>
+                        <span style={{ fontSize: 11, textAlign: "right", color: "#94a3b8" }}>{d.stage}</span>
+                        <div style={{ textAlign: "center" }}>
+                          <span style={{ display: "inline-block", width: 32, height: 22, lineHeight: "22px", borderRadius: 4, fontSize: 12, fontWeight: 800, textAlign: "center", background: tc + "20", color: tc }}>{d.deal_health_score}</span>
+                        </div>
+                        <div style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.4 }}>
+                          {d.recommendations[0]}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Model methodology note */}
+                <div style={{ marginTop: 16, padding: 14, background: "#111b2e", borderRadius: 8, border: "1px solid #1e293b" }}>
+                  <p style={{ fontSize: 11, color: "#475569", lineHeight: 1.6, margin: 0 }}>
+                    <strong style={{ color: "#a78bfa" }}>Model:</strong> L2-regularized logistic regression trained on 800 historical deals (640 train / 160 test). Features: engagement recency, stage stall duration, source channel, rep performance index, deal size, champion status, competitor presence, legal review duration, plus derived velocity and flag features. Scored pipeline loaded from <code style={{ color: "#10b981", background: "#0b1120", padding: "1px 4px", borderRadius: 3 }}>deal_scoring_model.py</code> output. In production, model would retrain weekly on fresh Salesforce data.
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
