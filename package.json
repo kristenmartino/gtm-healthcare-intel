@@ -2,6 +2,17 @@
   "name": "gtm-healthcare-intel",
   "version": "1.0.0",
   "private": true,
+  "description": "Interactive analytics portfolio demonstrating go-to-market business intelligence for the specialty healthcare EHR space.",
+  "author": "Kristen Martino",
+  "license": "MIT",
+  "homepage": "https://gtm.kristenmartino.ai",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kristenmartino/gtm-healthcare-intel.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
