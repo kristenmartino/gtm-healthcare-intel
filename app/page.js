@@ -13,12 +13,12 @@ const PROJECTS = [
   {
     name: "NorthStar",
     slug: "northstar",
-    pitch: "GTM analytics governance platform — metric registry with conflict resolution, reporting adoption tracker, shadow spreadsheet monitor, and the descriptive-to-prescriptive maturity roadmap.",
-    skills: ["Metric Standardization", "Data Governance", "Adoption Tracking", "Maturity Modeling"],
+    pitch: "GTM analytics governance platform — metric registry with conflict resolution, reporting adoption tracker, shadow spreadsheet monitor, maturity roadmap, and a prescriptive anomaly detection engine that generates actionable alerts from metric time-series data.",
+    skills: ["Metric Standardization", "Data Governance", "Adoption Tracking", "Anomaly Detection", "Prescriptive Analytics"],
     color: "#fbbf24",
     gradient: "linear-gradient(135deg, #f59e0b, #10b981)",
     icon: "N",
-    maturity: "Governance",
+    maturity: "Governance → Prescriptive",
     gtmProblem: "How do we get Sales, Marketing, and Finance to agree on what 'pipeline' means — and then get them to actually use the standardized reports?",
     featured: true,
     isNew: true,
@@ -77,7 +77,7 @@ const PROJECTS = [
     color: "#f59e0b",
     gradient: "linear-gradient(135deg, #f59e0b, #ef4444)",
     icon: "S",
-    maturity: "Descriptive",
+    maturity: "Descriptive → Diagnostic",
     gtmProblem: "Which specialties are seeing procedure volume growth that signals expanding EHR demand?",
   },
   {
@@ -211,7 +211,7 @@ export default function Home() {
             >
               <div style={{ fontSize: 16, marginBottom: 6 }}>🔧</div>
               <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Data Pipeline (GitHub)</div>
-              <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>Python ETL pipeline processing real CMS NPPES + Census data into SpectrumIQ opportunity scores. DuckDB + pandas.</div>
+              <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>Python ETL pipeline processing real CMS NPPES + Census data into SpectrumIQ opportunity scores. pandas + NumPy.</div>
             </div>
           </a>
         </div>
@@ -226,7 +226,7 @@ export default function Home() {
             All data is synthetic or derived from publicly available sources (CMS NPPES provider registry, Medicare Physician PUF, Census Bureau, MGMA/HFMA published benchmarks, Salesforce-modeled GTM data). No proprietary or patient data was used.
           </p>
           <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.7 }}>
-            <strong style={{ color: "#e2e8f0" }}>Tech stack:</strong> React, Next.js, DuckDB-modeled data pipelines, Claude API (Anthropic) for natural language analytics. Each project is designed to be extensible with real data sources (Salesforce, HubSpot, billing systems, data warehouses).
+            <strong style={{ color: "#e2e8f0" }}>Tech stack:</strong> React, Next.js, Python data pipelines (pandas, NumPy, L2 logistic regression), Claude API (Anthropic) for natural language analytics. Each project is designed to be extensible with real data sources (Salesforce, HubSpot, billing systems, data warehouses).
           </p>
         </div>
       </div>

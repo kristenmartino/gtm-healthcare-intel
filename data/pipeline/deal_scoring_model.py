@@ -1,7 +1,7 @@
 """
 Deal Scoring Model
 ==================
-Trains a gradient-boosted classifier on historical deal outcomes
+Trains an L2-regularized logistic regression on historical deal outcomes
 to predict close probability for open pipeline deals.
 
 Output:
