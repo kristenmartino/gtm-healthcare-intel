@@ -88,8 +88,16 @@ cd data/pipeline
 pip install -r ../../requirements.txt
 python spectrumiq_pipeline.py    # → public/metro_scores.json
 python deal_scoring_model.py     # → public/deal_scores.json
-pytest test_pipeline.py          # 30 tests (SpectrumIQ)
-pytest test_deal_scoring.py     # 34 tests (deal scoring model)
+```
+
+### Tests
+
+64 pytest tests across both pipelines covering data generation, feature engineering, model training, scoring, risk tier thresholds, recommendation logic, and output file validation.
+
+```bash
+cd data/pipeline
+pytest test_pipeline.py -v       # 30 tests — SpectrumIQ pipeline
+pytest test_deal_scoring.py -v   # 34 tests — deal scoring model
 ```
 
 ## Tech Stack
@@ -98,6 +106,7 @@ pytest test_deal_scoring.py     # 34 tests (deal scoring model)
 - **Frontend:** React 18 (inline styles, no component library)
 - **AI:** Anthropic Claude API (AskPractice, AskGTM)
 - **Data Pipelines:** Python (pandas, NumPy), L2 logistic regression
+- **Testing:** pytest (64 tests across both pipelines)
 - **Deployment:** Vercel with GitHub auto-deploys
 - **Domain:** Custom subdomain via Vercel DNS
 
