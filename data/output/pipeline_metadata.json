@@ -1,0 +1,62 @@
+{
+  "pipeline": "spectrumiq_data_pipeline",
+  "version": "1.0.0",
+  "run_timestamp": "2026-03-21T20:48:40.574751",
+  "data_sources": {
+    "nppes": {
+      "url": "https://download.cms.gov/nppes/NPI_Files.html",
+      "description": "CMS National Plan and Provider Enumeration System",
+      "fields_used": [
+        "NPI",
+        "taxonomy_code",
+        "city",
+        "state",
+        "zip_code"
+      ]
+    },
+    "census": {
+      "url": "https://www2.census.gov/programs-surveys/popest/datasets/",
+      "description": "Census Bureau CBSA Population Estimates",
+      "fields_used": [
+        "metro",
+        "population",
+        "growth_rate",
+        "median_income"
+      ]
+    },
+    "cms_medicare": {
+      "url": "https://data.cms.gov/summary-statistics-on-beneficiary-enrollment/",
+      "description": "CMS Medicare Enrollment Dashboard",
+      "fields_used": [
+        "medicare_pct by metro"
+      ]
+    }
+  },
+  "scoring_methodology": {
+    "weights": {
+      "provider_gap": 0.35,
+      "population_growth": 0.25,
+      "medicare_density": 0.2,
+      "income_index": 0.2
+    },
+    "national_benchmarks": {
+      "Dermatology": 12.8,
+      "Orthopedics": 16.2,
+      "Gastroenterology": 8.9,
+      "Ophthalmology": 11.4,
+      "Urology": 6.8
+    },
+    "score_range": "0-100 composite",
+    "tier_thresholds": {
+      "High Opportunity": ">=70",
+      "Moderate": "45-69",
+      "Low Priority": "<45"
+    }
+  },
+  "output": {
+    "file": "data/output/metro_opportunity_scores.csv",
+    "rows": 90,
+    "metros": 18,
+    "specialties": 5
+  }
+}
