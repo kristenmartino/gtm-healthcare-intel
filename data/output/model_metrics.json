@@ -1,0 +1,90 @@
+{
+  "accuracy": 0.6,
+  "precision": 0.286,
+  "recall": 0.588,
+  "f1_score": 0.385,
+  "auc_roc": 0.618,
+  "optimal_threshold": 0.28,
+  "n_train": 640,
+  "n_test": 160,
+  "model_type": "logistic_regression_L2",
+  "regularization": 0.01,
+  "top_features": [
+    {
+      "feature": "engagement_recency_flag",
+      "importance": 0.3526
+    },
+    {
+      "feature": "stage_stall_flag",
+      "importance": 0.3524
+    },
+    {
+      "feature": "source_Referral",
+      "importance": 0.1785
+    },
+    {
+      "feature": "rep_skill_index",
+      "importance": 0.1762
+    },
+    {
+      "feature": "acv",
+      "importance": 0.1674
+    },
+    {
+      "feature": "days_since_last_activity",
+      "importance": 0.158
+    },
+    {
+      "feature": "practice_size_Solo",
+      "importance": 0.1484
+    },
+    {
+      "feature": "has_champion",
+      "importance": 0.1191
+    },
+    {
+      "feature": "legal_stall_flag",
+      "importance": 0.1137
+    },
+    {
+      "feature": "practice_size_Medium",
+      "importance": 0.1131
+    }
+  ],
+  "confusion_matrix": {
+    "tp": 20,
+    "fp": 50,
+    "fn": 14,
+    "tn": 76
+  },
+  "pipeline": "deal_scoring_model",
+  "run_timestamp": "2026-03-21T21:12:45.665923",
+  "features_used": [
+    "acv",
+    "days_in_current_stage",
+    "total_days_in_pipeline",
+    "num_activities",
+    "days_since_last_activity",
+    "has_champion",
+    "competitor_mentioned",
+    "legal_review_days",
+    "specialty (encoded)",
+    "source (encoded)",
+    "practice_size (encoded)",
+    "rep_skill_index",
+    "activity_velocity",
+    "stage_stall_flag",
+    "engagement_recency_flag",
+    "legal_stall_flag",
+    "large_deal_flag"
+  ],
+  "scoring_output": {
+    "total_deals": 45,
+    "at_risk": 9,
+    "needs_attention": 17,
+    "on_track": 11,
+    "strong": 8,
+    "total_pipeline_acv": 2349046,
+    "at_risk_acv": 397627
+  }
+}
