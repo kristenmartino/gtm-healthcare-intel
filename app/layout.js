@@ -1,8 +1,32 @@
 import "./globals.css";
 
 export const metadata = {
+  metadataBase: new URL("https://gtm.kristenmartino.ai"),
   title: "GTM Healthcare Intelligence — Kristen Martino",
-  description: "Interactive analytics projects demonstrating GTM BI for the specialty healthcare EHR space",
+  description:
+    "Interactive analytics portfolio demonstrating go-to-market business intelligence for the specialty healthcare EHR space.",
+  openGraph: {
+    title: "GTM Healthcare Intelligence — Kristen Martino",
+    description:
+      "Interactive analytics portfolio demonstrating go-to-market business intelligence for the specialty healthcare EHR space.",
+    url: "https://gtm.kristenmartino.ai",
+    siteName: "GTM Healthcare Intelligence",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary",
+    title: "GTM Healthcare Intelligence — Kristen Martino",
+    description:
+      "Interactive analytics portfolio demonstrating go-to-market BI for specialty healthcare.",
+  },
+  icons: {
+    icon: "/icon.svg",
+  },
+};
+
+export const viewport = {
+  themeColor: "#0b1120",
 };
 
 export default function RootLayout({ children }) {
