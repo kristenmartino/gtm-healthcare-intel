@@ -50,7 +50,8 @@ gtm-healthcare-intel/
 │   ├── pipeline/
 │   │   ├── spectrumiq_pipeline.py   # CMS NPPES + Census ETL → metro scores
 │   │   ├── deal_scoring_model.py    # L2 logistic regression deal scorer
-│   │   └── test_pipeline.py         # pytest suite (28 tests)
+│   │   ├── test_pipeline.py         # SpectrumIQ pipeline tests (30 tests)
+│   │   └── test_deal_scoring.py     # Deal scoring model tests (34 tests)
 │   └── output/
 │       ├── pipeline_metadata.json
 │       └── model_metrics.json
@@ -87,7 +88,8 @@ cd data/pipeline
 pip install -r ../../requirements.txt
 python spectrumiq_pipeline.py    # → public/metro_scores.json
 python deal_scoring_model.py     # → public/deal_scores.json
-pytest test_pipeline.py          # 28 tests
+pytest test_pipeline.py          # 30 tests (SpectrumIQ)
+pytest test_deal_scoring.py     # 34 tests (deal scoring model)
 ```
 
 ## Tech Stack
