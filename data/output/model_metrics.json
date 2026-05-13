@@ -58,7 +58,7 @@
     "tn": 76
   },
   "pipeline": "deal_scoring_model",
-  "run_timestamp": "2026-03-21T21:12:45.665923",
+  "run_timestamp": "2026-05-12T22:04:59.534009",
   "features_used": [
     "acv",
     "days_in_current_stage",
@@ -80,11 +80,11 @@
   ],
   "scoring_output": {
     "total_deals": 45,
-    "at_risk": 9,
-    "needs_attention": 17,
+    "at_risk": 8,
+    "needs_attention": 26,
     "on_track": 11,
-    "strong": 8,
+    "strong": 0,
     "total_pipeline_acv": 2349046,
-    "at_risk_acv": 397627
+    "at_risk_acv": 385606
   }
 }

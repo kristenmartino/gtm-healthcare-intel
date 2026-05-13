@@ -1,26 +1,33 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 
 // ═══ SYNTHETIC GTM DATASET ═══
+// Seeded so the client-side insights match what the server sends to Claude.
+function seededRandom(seed) {
+  let s = seed;
+  return () => { s = (s * 16807 + 11) % 2147483647; return s / 2147483647; };
+}
+
 function generateGTMData() {
   const reps = ["Sarah Chen", "Marcus Rivera", "Emily Okafor", "James Patel", "Lisa Wong", "David Kim"];
   const specialties = ["Dermatology", "Orthopedics", "Gastroenterology", "Ophthalmology"];
   const sources = ["Inbound", "Outbound", "Referral", "Trade Show", "Partner"];
   const stages = ["Prospecting", "Qualified", "Demo Scheduled", "Proposal Sent", "Negotiation", "Closed Won", "Closed Lost"];
   const quarters = ["Q3 2024", "Q4 2024", "Q1 2025"];
-  const rand = (min, max) => Math.round((Math.random() * (max - min) + min) * 100) / 100;
+  const r = seededRandom(42);
+  const rand = (min, max) => Math.round((r() * (max - min) + min) * 100) / 100;
 
   const deals = [];
   for (let i = 0; i < 280; i++) {
-    const rep = reps[Math.floor(Math.random() * reps.length)];
-    const spec = specialties[Math.floor(Math.random() * specialties.length)];
-    const src = sources[Math.floor(Math.random() * sources.length)];
-    const q = quarters[Math.floor(Math.random() * quarters.length)];
-    const stageIdx = Math.floor(Math.random() * stages.length);
+    const rep = reps[Math.floor(r() * reps.length)];
+    const spec = specialties[Math.floor(r() * specialties.length)];
+    const src = sources[Math.floor(r() * sources.length)];
+    const q = quarters[Math.floor(r() * quarters.length)];
+    const stageIdx = Math.floor(r() * stages.length);
     const won = stages[stageIdx] === "Closed Won";
     const lost = stages[stageIdx] === "Closed Lost";
     const acv = Math.round(rand(8000, 185000));
     const daysInPipeline = Math.round(rand(12, 95));
-    deals.push({ id: i, rep, specialty: spec, source: src, quarter: q, stage: stages[stageIdx], won, lost, acv, daysInPipeline, practiceSize: ["Solo", "Small", "Medium", "Large"][Math.floor(Math.random() * 4)] });
+    deals.push({ id: i, rep, specialty: spec, source: src, quarter: q, stage: stages[stageIdx], won, lost, acv, daysInPipeline, practiceSize: ["Solo", "Small", "Medium", "Large"][Math.floor(r() * 4)] });
   }
 
   const marketing = quarters.map(q => ({
@@ -30,7 +37,6 @@ function generateGTMData() {
     demosBooked: Math.round(rand(80, 160)),
     pipelineGenerated: Math.round(rand(1200000, 2800000)),
     spend: Math.round(rand(180000, 350000)),
-    channels: { Paid: rand(0.3, 0.4), Organic: rand(0.2, 0.3), Events: rand(0.15, 0.25), Content: rand(0.1, 0.2) },
   }));
 
   const churn = specialties.map(s => ({
@@ -133,8 +139,15 @@ export default function AskGTM() {
         body: JSON.stringify({ question: q }),
       });
       const data = await response.json();
-      const reply = data.content?.map(c => c.text || "").join("\n") || "I wasn't able to process that query. Please try rephrasing.";
-      setMessages(prev => [...prev, { role: "assistant", text: reply }]);
+      if (!response.ok) {
+        const errMsg = response.status === 429
+          ? "Rate limit reached — please wait a moment before asking again."
+          : data?.error || "Something went wrong. Please try again.";
+        setMessages(prev => [...prev, { role: "assistant", text: errMsg }]);
+      } else {
+        const reply = data.content?.map(c => c.text || "").join("\n") || "I wasn't able to process that query. Please try rephrasing.";
+        setMessages(prev => [...prev, { role: "assistant", text: reply }]);
+      }
     } catch (err) {
       setMessages(prev => [...prev, { role: "assistant", text: "Connection error. In a production deployment, this would query your Salesforce / data warehouse in real-time via SQL generation. The demo requires API connectivity." }]);
     }

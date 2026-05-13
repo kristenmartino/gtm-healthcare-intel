@@ -1,4 +1,3 @@
-"use client";
 import Link from "next/link";
 
 const MATURITY_LEVELS = [
@@ -137,6 +136,7 @@ export default function Home() {
           {PROJECTS.map((p) => (
             <Link href={`/${p.slug}`} key={p.slug} style={{ textDecoration: "none", color: "inherit" }}>
               <div
+                className="project-card"
                 style={{
                   background: "#111b2e",
                   borderRadius: 14,
@@ -145,9 +145,8 @@ export default function Home() {
                   cursor: "pointer",
                   transition: "transform 0.2s, border-color 0.2s",
                   position: "relative",
+                  "--hover-border": p.color + "60",
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.borderColor = p.color + "60"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = p.featured ? p.color + "40" : "#1e293b"; }}
               >
                 <div style={{ position: "absolute", top: 14, right: 16, display: "flex", gap: 6 }}>
                   {p.isNew && (
@@ -185,30 +184,21 @@ export default function Home() {
         {/* Supporting resources */}
         <div style={{ marginTop: 20, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
           <Link href="/methodology" style={{ textDecoration: "none", color: "inherit" }}>
-            <div style={{ background: "#111b2e", borderRadius: 10, padding: "16px 18px", border: "1px solid #1e293b", cursor: "pointer", transition: "border-color 0.2s" }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = "#38bdf860"}
-              onMouseLeave={e => e.currentTarget.style.borderColor = "#1e293b"}
-            >
+            <div className="resource-card" style={{ background: "#111b2e", borderRadius: 10, padding: "16px 18px", border: "1px solid #1e293b", cursor: "pointer", transition: "border-color 0.2s", "--hover-border": "#38bdf860" }}>
               <div style={{ fontSize: 16, marginBottom: 6 }}>{`</>`}</div>
               <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>SQL Methodology</div>
               <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>Production-ready SQL for every GTM metric — with edge case handling and cross-team conflict resolution notes.</div>
             </div>
           </Link>
           <Link href="/q1-review" style={{ textDecoration: "none", color: "inherit" }}>
-            <div style={{ background: "#111b2e", borderRadius: 10, padding: "16px 18px", border: "1px solid #1e293b", cursor: "pointer", transition: "border-color 0.2s" }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = "#f59e0b60"}
-              onMouseLeave={e => e.currentTarget.style.borderColor = "#1e293b"}
-            >
+            <div className="resource-card" style={{ background: "#111b2e", borderRadius: 10, padding: "16px 18px", border: "1px solid #1e293b", cursor: "pointer", transition: "border-color 0.2s", "--hover-border": "#f59e0b60" }}>
               <div style={{ fontSize: 16, marginBottom: 6 }}>📊</div>
               <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Q1 Performance Review</div>
               <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>Analytical memo with segment breakdowns, root cause analysis, and prioritized recommendations — the actual deliverable.</div>
             </div>
           </Link>
           <a href="https://github.com/kristenmartino/gtm-healthcare-intel/tree/main/data/pipeline" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", color: "inherit" }}>
-            <div style={{ background: "#111b2e", borderRadius: 10, padding: "16px 18px", border: "1px solid #1e293b", cursor: "pointer", transition: "border-color 0.2s" }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = "#10b98160"}
-              onMouseLeave={e => e.currentTarget.style.borderColor = "#1e293b"}
-            >
+            <div className="resource-card" style={{ background: "#111b2e", borderRadius: 10, padding: "16px 18px", border: "1px solid #1e293b", cursor: "pointer", transition: "border-color 0.2s", "--hover-border": "#10b98160" }}>
               <div style={{ fontSize: 16, marginBottom: 6 }}>🔧</div>
               <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Data Pipeline (GitHub)</div>
               <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>Python ETL pipeline processing real CMS NPPES + Census data into SpectrumIQ opportunity scores. pandas + NumPy.</div>
