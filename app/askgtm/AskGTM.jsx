@@ -246,6 +246,22 @@ export default function AskGTM() {
           <div style={{ fontSize: 10, color: "#475569", marginTop: 6 }}>
             Powered by Claude API · Queries synthetic Salesforce-style GTM data ({GTM_DATA.deals.length} deals, {GTM_DATA.reps.length} reps, {GTM_DATA.specialties.length} specialties)
           </div>
+          <details style={{ marginTop: 8 }}>
+            <summary style={{ fontSize: 11, color: "#64748b", cursor: "pointer", userSelect: "none" }}>
+              How this works — architecture & limits
+            </summary>
+            <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 8, lineHeight: 1.7, padding: "12px 14px", background: "#0b1120", borderRadius: 8, border: "1px solid #1e293b" }}>
+              <p style={{ margin: "0 0 8px" }}>
+                <strong style={{ color: "#e2e8f0" }}>Grounding:</strong> The server-side system prompt contains a flattened text summary of the synthetic GTM dataset (deals by rep × specialty × source × quarter, the marketing funnel, churn cohorts). Claude reasons over the summary directly — no tool use, no SQL generation, no vector retrieval. The Smart Insights tiles above use the same seeded dataset client-side so the panel and the assistant stay aligned.
+              </p>
+              <p style={{ margin: "0 0 8px" }}>
+                <strong style={{ color: "#e2e8f0" }}>In production:</strong> this would be a tool-using agent over a governed metric registry (the kind documented in <a href="/northstar" style={{ color: "#6366f1" }}>NorthStar</a>). The assistant would issue queries against live warehouse tables; the metric definitions in the registry would constrain what aggregations and joins it can perform, so two analysts asking the same question always get the same answer. Text prompt-stuffing is a demo simplification, not the recommended pattern.
+              </p>
+              <p style={{ margin: 0 }}>
+                <strong style={{ color: "#e2e8f0" }}>Limits:</strong> Synthetic data only — questions outside the dataset (e.g. "what's our YoY ARR?") will get a polite "I don't have that data" response. Rate-limited to 10 requests per IP per minute. The system prompt lives server-side and never accepts client-supplied overrides.
+              </p>
+            </div>
+          </details>
         </div>
       </div>
     </div>
