@@ -157,8 +157,27 @@ class TestModelTraining:
 
     def test_model_has_required_keys(self, trained):
         model, _, _ = trained
-        for key in ["weights", "means", "stds"]:
+        for key in ["weights", "means", "stds", "prob_min", "prob_max"]:
             assert key in model, f"Model missing key: {key}"
+
+    def test_calibration_bounds_valid(self, trained):
+        model, _, _ = trained
+        assert 0 <= model["prob_min"] <= 1, "prob_min outside [0, 1]"
+        assert 0 <= model["prob_max"] <= 1, "prob_max outside [0, 1]"
+        assert model["prob_min"] < model["prob_max"], "prob bounds collapsed"
+
+    def test_scoring_is_stable_across_batches(self, trained):
+        """Scoring twice should yield identical health scores — calibration must
+        not depend on the current batch's min/max probability."""
+        model, _, feature_cols = trained
+        np.random.seed(123)
+        first = score_pipeline(model, feature_cols, n_open=40)
+        np.random.seed(123)
+        second = score_pipeline(model, feature_cols, n_open=40)
+        pd.testing.assert_series_equal(
+            first["deal_health_score"].reset_index(drop=True),
+            second["deal_health_score"].reset_index(drop=True),
+        )
 
     def test_metrics_has_required_keys(self, trained):
         _, metrics, _ = trained

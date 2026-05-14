@@ -1,7 +1,7 @@
 {
   "pipeline": "spectrumiq_data_pipeline",
   "version": "1.0.0",
-  "run_timestamp": "2026-03-21T20:48:40.574751",
+  "run_timestamp": "2026-05-12T21:54:24.327690",
   "data_sources": {
     "nppes": {
       "url": "https://download.cms.gov/nppes/NPI_Files.html",
@@ -54,7 +54,8 @@
     }
   },
   "output": {
-    "file": "data/output/metro_opportunity_scores.csv",
+    "csv": "data/output/metro_opportunity_scores.csv",
+    "json": "public/metro_scores.json",
     "rows": 90,
     "metros": 18,
     "specialties": 5

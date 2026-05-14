@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import Anthropic from "@anthropic-ai/sdk";
+import { checkRateLimit } from "../../../lib/rate-limit";
+
+const anthropic = new Anthropic();
 
 // ═══════════════════════════════════════════════════════════════
 // GTM DATA — Server-side only. Never sent to the client.
@@ -127,45 +131,37 @@ ${DATA_SUMMARY}`;
 // ═══════════════════════════════════════════════════════════════
 
 export async function POST(request) {
+  const rate = checkRateLimit(request, { limit: 10, windowMs: 60_000 });
+  if (!rate.ok) {
+    return NextResponse.json(
+      { error: "Too many requests. Please slow down." },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfter) } },
+    );
+  }
+
   try {
     const { question } = await request.json();
 
     if (!question || typeof question !== "string") {
-      return NextResponse.json(
-        { error: "Missing or invalid 'question' field" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing or invalid 'question' field" }, { status: 400 });
+    }
+    if (question.length > 2000) {
+      return NextResponse.json({ error: "Question exceeds 2000-character limit" }, { status: 400 });
     }
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1024,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: question }],
-      }),
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1024,
+      system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
+      messages: [{ role: "user", content: question }],
     });
-
-    if (!response.ok) {
-      const error = await response.text();
-      return NextResponse.json(
-        { error: "API request failed", details: error },
-        { status: response.status }
-      );
-    }
-
-    const data = await response.json();
-    return NextResponse.json(data);
+    return NextResponse.json(message);
   } catch (error) {
-    return NextResponse.json(
-      { error: "Internal server error", details: error.message },
-      { status: 500 }
-    );
+    if (error instanceof Anthropic.APIError) {
+      console.error("Anthropic API error:", error.status, error.message);
+      return NextResponse.json({ error: "Upstream model request failed" }, { status: 502 });
+    }
+    console.error("AskGTM route error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

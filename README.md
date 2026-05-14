@@ -45,7 +45,11 @@ gtm-healthcare-intel/
 │   ├── askgtm/                # AI GTM intelligence
 │   ├── methodology/           # SQL methodology reference
 │   ├── q1-review/             # QBR analytical memo
-│   └── api/askgtm/            # API route for AskGTM
+│   └── api/
+│       ├── ask/               # API route for AskPractice
+│       └── askgtm/            # API route for AskGTM
+├── lib/
+│   └── rate-limit.js          # Shared per-IP rate limiter for AI routes
 ├── data/
 │   ├── pipeline/
 │   │   ├── spectrumiq_pipeline.py   # CMS NPPES + Census ETL → metro scores

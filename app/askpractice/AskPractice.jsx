@@ -1,14 +1,21 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 
-// Synthetic practice data for a multi-provider dermatology group
+// Synthetic practice data for a multi-provider dermatology group.
+// Seeded so the client-side insights match what the server sends to Claude.
+function seededRandom(seed) {
+  let s = seed;
+  return () => { s = (s * 16807 + 11) % 2147483647; return s / 2147483647; };
+}
+
 function generatePracticeData() {
   const providers = ["Dr. Sarah Chen", "Dr. Marcus Rivera", "Dr. Emily Okafor", "Dr. James Patel", "Dr. Lisa Wong"];
   const payers = ["Blue Cross", "Aetna", "UnitedHealth", "Medicare", "Cigna", "Self-Pay"];
   const months = [];
   const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  
-  const rand = (min, max) => Math.round((Math.random() * (max - min) + min) * 100) / 100;
-  
+
+  const r = seededRandom(42);
+  const rand = (min, max) => Math.round((r() * (max - min) + min) * 100) / 100;
+
   for (let m = 0; m < 12; m++) {
     const monthData = { month: monthNames[m], year: 2025, providers: {} };
     providers.forEach(p => {
@@ -44,21 +51,6 @@ function generatePracticeData() {
 }
 
 const PRACTICE_DATA = generatePracticeData();
-
-function buildDataSummary() {
-  const d = PRACTICE_DATA;
-  const lines = [`Practice: ${d.practiceName}`, `Providers: ${d.providers.join(", ")}`, `Payers: ${d.payers.join(", ")}`, `Period: Jan 2025 - Dec 2025`, ``, `Monthly Performance Data:`];
-  
-  d.months.forEach(m => {
-    lines.push(`\n--- ${m.month} ${m.year} ---`);
-    Object.entries(m.providers).forEach(([prov, data]) => {
-      lines.push(`${prov}: ${data.patients} patients, $${data.revenue.toLocaleString()} revenue, $${data.collections.toLocaleString()} collected, ${data.denials} denials, ${data.noShows} no-shows, $${data.avgReimb} avg reimb`);
-      lines.push(`  Procedures: ${Object.entries(data.procedures).map(([k,v]) => `${k}: ${v}`).join(", ")}`);
-      lines.push(`  Payer Mix: ${Object.entries(data.payerMix).map(([k,v]) => `${k}: $${v.toLocaleString()}`).join(", ")}`);
-    });
-  });
-  return lines.join("\n");
-}
 
 function SmartInsights() {
   const d = PRACTICE_DATA;
@@ -122,8 +114,6 @@ export default function AskPractice() {
   const chatRef = useRef(null);
   const insights = useMemo(() => SmartInsights(), []);
 
-  const dataSummary = useMemo(() => buildDataSummary(), []);
-
   useEffect(() => {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [messages]);
@@ -148,14 +138,18 @@ export default function AskPractice() {
       const response = await fetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          system: `You are a healthcare practice analytics assistant for "${PRACTICE_DATA.practiceName}", a multi-provider dermatology practice. You answer questions about practice performance using the data provided. Be concise, specific, and use exact numbers. Format currency with $ and commas. When comparing providers, use their last names only. If asked to "show" data, describe the key numbers clearly. Always end with one actionable insight or recommendation.\n\nPRACTICE DATA:\n${dataSummary}`,
-          messages: [{ role: "user", content: q }],
-        }),
+        body: JSON.stringify({ question: q }),
       });
       const data = await response.json();
-      const reply = data.content?.map(c => c.text || "").join("\n") || "I wasn't able to process that query. Please try rephrasing.";
-      setMessages(prev => [...prev, { role: "assistant", text: reply }]);
+      if (!response.ok) {
+        const errMsg = response.status === 429
+          ? "Rate limit reached — please wait a moment before asking again."
+          : data?.error || "Something went wrong. Please try again.";
+        setMessages(prev => [...prev, { role: "assistant", text: errMsg }]);
+      } else {
+        const reply = data.content?.map(c => c.text || "").join("\n") || "I wasn't able to process that query. Please try rephrasing.";
+        setMessages(prev => [...prev, { role: "assistant", text: reply }]);
+      }
     } catch (err) {
       setMessages(prev => [...prev, { role: "assistant", text: "Connection error. In a production deployment, this would query your practice database in real-time. The demo requires API connectivity." }]);
     }

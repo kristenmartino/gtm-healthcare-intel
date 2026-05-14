@@ -15,7 +15,7 @@
     "has_champion": false,
     "competitor_mentioned": true,
     "legal_review_days": 1,
-    "deal_health_score": 50,
+    "deal_health_score": 44,
     "win_probability": 28.0,
     "risk_tier": "Needs Attention",
     "recommendations": [
@@ -39,7 +39,7 @@
     "has_champion": true,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 26,
+    "deal_health_score": 29,
     "win_probability": 15.9,
     "risk_tier": "At Risk",
     "recommendations": [
@@ -62,11 +62,11 @@
     "has_champion": true,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 55,
+    "deal_health_score": 48,
     "win_probability": 31.0,
-    "risk_tier": "On Track",
+    "risk_tier": "Needs Attention",
     "recommendations": [
-      "Deal healthy \u2014 maintain current cadence"
+      "High-value deal ($202,198) at risk \u2014 consider executive sponsor involvement"
     ]
   },
   {
@@ -85,9 +85,9 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 76,
+    "deal_health_score": 61,
     "win_probability": 41.4,
-    "risk_tier": "Strong",
+    "risk_tier": "On Track",
     "recommendations": [
       "No champion identified \u2014 prioritize stakeholder mapping"
     ]
@@ -108,9 +108,9 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 2,
-    "deal_health_score": 59,
+    "deal_health_score": 50,
     "win_probability": 32.7,
-    "risk_tier": "On Track",
+    "risk_tier": "Needs Attention",
     "recommendations": [
       "No champion identified \u2014 prioritize stakeholder mapping"
     ]
@@ -131,9 +131,9 @@
     "has_champion": true,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 52,
+    "deal_health_score": 45,
     "win_probability": 29.0,
-    "risk_tier": "On Track",
+    "risk_tier": "Needs Attention",
     "recommendations": [
       "Deal healthy \u2014 maintain current cadence"
     ]
@@ -154,9 +154,9 @@
     "has_champion": false,
     "competitor_mentioned": true,
     "legal_review_days": 0,
-    "deal_health_score": 72,
+    "deal_health_score": 58,
     "win_probability": 39.6,
-    "risk_tier": "Strong",
+    "risk_tier": "On Track",
     "recommendations": [
       "No champion identified \u2014 prioritize stakeholder mapping",
       "Competitor in play \u2014 prepare competitive displacement materials"
@@ -178,7 +178,7 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 46,
+    "deal_health_score": 42,
     "win_probability": 26.2,
     "risk_tier": "Needs Attention",
     "recommendations": [
@@ -201,7 +201,7 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 48,
+    "deal_health_score": 43,
     "win_probability": 27.4,
     "risk_tier": "Needs Attention",
     "recommendations": [
@@ -247,7 +247,7 @@
     "has_champion": true,
     "competitor_mentioned": true,
     "legal_review_days": 0,
-    "deal_health_score": 47,
+    "deal_health_score": 42,
     "win_probability": 26.5,
     "risk_tier": "Needs Attention",
     "recommendations": [
@@ -270,7 +270,7 @@
     "has_champion": true,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 10,
+    "deal_health_score": 19,
     "win_probability": 7.7,
     "risk_tier": "At Risk",
     "recommendations": [
@@ -316,7 +316,7 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 32,
+    "deal_health_score": 33,
     "win_probability": 19.2,
     "risk_tier": "Needs Attention",
     "recommendations": [
@@ -364,7 +364,7 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 43,
+    "deal_health_score": 39,
     "win_probability": 24.4,
     "risk_tier": "Needs Attention",
     "recommendations": [
@@ -387,9 +387,9 @@
     "has_champion": true,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 90,
+    "deal_health_score": 70,
     "win_probability": 48.8,
-    "risk_tier": "Strong",
+    "risk_tier": "On Track",
     "recommendations": [
       "Deal healthy \u2014 maintain current cadence"
     ]
@@ -410,7 +410,7 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 39,
+    "deal_health_score": 37,
     "win_probability": 22.6,
     "risk_tier": "Needs Attention",
     "recommendations": [
@@ -433,7 +433,7 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 10,
+    "deal_health_score": 19,
     "win_probability": 7.7,
     "risk_tier": "At Risk",
     "recommendations": [
@@ -457,7 +457,7 @@
     "has_champion": false,
     "competitor_mentioned": true,
     "legal_review_days": 0,
-    "deal_health_score": 39,
+    "deal_health_score": 37,
     "win_probability": 22.7,
     "risk_tier": "Needs Attention",
     "recommendations": [
@@ -481,9 +481,9 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 51,
+    "deal_health_score": 45,
     "win_probability": 29.0,
-    "risk_tier": "On Track",
+    "risk_tier": "Needs Attention",
     "recommendations": [
       "No champion identified \u2014 prioritize stakeholder mapping"
     ]
@@ -504,9 +504,9 @@
     "has_champion": true,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 82,
+    "deal_health_score": 65,
     "win_probability": 44.8,
-    "risk_tier": "Strong",
+    "risk_tier": "On Track",
     "recommendations": [
       "Deal healthy \u2014 maintain current cadence"
     ]
@@ -527,7 +527,7 @@
     "has_champion": true,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 65,
+    "deal_health_score": 54,
     "win_probability": 36.2,
     "risk_tier": "On Track",
     "recommendations": [
@@ -573,9 +573,9 @@
     "has_champion": true,
     "competitor_mentioned": true,
     "legal_review_days": 0,
-    "deal_health_score": 57,
+    "deal_health_score": 49,
     "win_probability": 31.7,
-    "risk_tier": "On Track",
+    "risk_tier": "Needs Attention",
     "recommendations": [
       "Competitor in play \u2014 prepare competitive displacement materials"
     ]
@@ -596,9 +596,9 @@
     "has_champion": true,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 72,
+    "deal_health_score": 58,
     "win_probability": 39.5,
-    "risk_tier": "Strong",
+    "risk_tier": "On Track",
     "recommendations": [
       "Deal healthy \u2014 maintain current cadence"
     ]
@@ -619,7 +619,7 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 1,
-    "deal_health_score": 18,
+    "deal_health_score": 24,
     "win_probability": 12.0,
     "risk_tier": "At Risk",
     "recommendations": [
@@ -643,9 +643,9 @@
     "has_champion": false,
     "competitor_mentioned": true,
     "legal_review_days": 0,
-    "deal_health_score": 52,
+    "deal_health_score": 46,
     "win_probability": 29.5,
-    "risk_tier": "On Track",
+    "risk_tier": "Needs Attention",
     "recommendations": [
       "No champion identified \u2014 prioritize stakeholder mapping",
       "Competitor in play \u2014 prepare competitive displacement materials"
@@ -667,7 +667,7 @@
     "has_champion": true,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 49,
+    "deal_health_score": 44,
     "win_probability": 27.7,
     "risk_tier": "Needs Attention",
     "recommendations": [
@@ -690,9 +690,9 @@
     "has_champion": true,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 88,
+    "deal_health_score": 68,
     "win_probability": 47.6,
-    "risk_tier": "Strong",
+    "risk_tier": "On Track",
     "recommendations": [
       "Deal healthy \u2014 maintain current cadence"
     ]
@@ -713,7 +713,7 @@
     "has_champion": false,
     "competitor_mentioned": true,
     "legal_review_days": 0,
-    "deal_health_score": 38,
+    "deal_health_score": 37,
     "win_probability": 22.1,
     "risk_tier": "Needs Attention",
     "recommendations": [
@@ -737,9 +737,9 @@
     "has_champion": true,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 84,
+    "deal_health_score": 66,
     "win_probability": 45.8,
-    "risk_tier": "Strong",
+    "risk_tier": "On Track",
     "recommendations": [
       "Deal healthy \u2014 maintain current cadence"
     ]
@@ -760,7 +760,7 @@
     "has_champion": true,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 61,
+    "deal_health_score": 51,
     "win_probability": 33.8,
     "risk_tier": "On Track",
     "recommendations": [
@@ -783,7 +783,7 @@
     "has_champion": true,
     "competitor_mentioned": false,
     "legal_review_days": 12,
-    "deal_health_score": 11,
+    "deal_health_score": 19,
     "win_probability": 8.2,
     "risk_tier": "At Risk",
     "recommendations": [
@@ -807,7 +807,7 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 36,
+    "deal_health_score": 35,
     "win_probability": 21.1,
     "risk_tier": "Needs Attention",
     "recommendations": [
@@ -831,7 +831,7 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 1,
-    "deal_health_score": 47,
+    "deal_health_score": 42,
     "win_probability": 26.7,
     "risk_tier": "Needs Attention",
     "recommendations": [
@@ -854,9 +854,9 @@
     "has_champion": true,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 59,
+    "deal_health_score": 50,
     "win_probability": 33.1,
-    "risk_tier": "On Track",
+    "risk_tier": "Needs Attention",
     "recommendations": [
       "Stalled 57d in stage \u2014 escalate with manager check-in"
     ]
@@ -877,7 +877,7 @@
     "has_champion": false,
     "competitor_mentioned": true,
     "legal_review_days": 4,
-    "deal_health_score": 19,
+    "deal_health_score": 24,
     "win_probability": 12.0,
     "risk_tier": "At Risk",
     "recommendations": [
@@ -901,9 +901,9 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 29,
+    "deal_health_score": 31,
     "win_probability": 17.3,
-    "risk_tier": "At Risk",
+    "risk_tier": "Needs Attention",
     "recommendations": [
       "No champion identified \u2014 prioritize stakeholder mapping"
     ]
@@ -924,9 +924,9 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 85,
+    "deal_health_score": 67,
     "win_probability": 46.2,
-    "risk_tier": "Strong",
+    "risk_tier": "On Track",
     "recommendations": [
       "No champion identified \u2014 prioritize stakeholder mapping"
     ]
@@ -947,7 +947,7 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 9,
-    "deal_health_score": 20,
+    "deal_health_score": 25,
     "win_probability": 12.8,
     "risk_tier": "At Risk",
     "recommendations": [
@@ -971,7 +971,7 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 67,
+    "deal_health_score": 55,
     "win_probability": 37.2,
     "risk_tier": "On Track",
     "recommendations": [
@@ -994,7 +994,7 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 13,
-    "deal_health_score": 25,
+    "deal_health_score": 28,
     "win_probability": 15.4,
     "risk_tier": "At Risk",
     "recommendations": [
@@ -1018,9 +1018,9 @@
     "has_champion": false,
     "competitor_mentioned": true,
     "legal_review_days": 0,
-    "deal_health_score": 54,
+    "deal_health_score": 47,
     "win_probability": 30.3,
-    "risk_tier": "On Track",
+    "risk_tier": "Needs Attention",
     "recommendations": [
       "No champion identified \u2014 prioritize stakeholder mapping",
       "Competitor in play \u2014 prepare competitive displacement materials"
@@ -1042,7 +1042,7 @@
     "has_champion": false,
     "competitor_mentioned": false,
     "legal_review_days": 0,
-    "deal_health_score": 36,
+    "deal_health_score": 35,
     "win_probability": 21.1,
     "risk_tier": "Needs Attention",
     "recommendations": [

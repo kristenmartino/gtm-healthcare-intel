@@ -32,7 +32,9 @@ from pathlib import Path
 # ─── Configuration ───────────────────────────────────────────────────────────
 
 OUTPUT_DIR = Path("data/output")
+PUBLIC_DIR = Path("public")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+PUBLIC_DIR.mkdir(parents=True, exist_ok=True)
 
 # ModMed's core specialties mapped to NPPES taxonomy codes
 # Source: https://taxonomy.nucc.org/
@@ -269,12 +271,16 @@ def score_metros(df: pd.DataFrame) -> pd.DataFrame:
 def export_results(scored: pd.DataFrame):
     """Write scored results and pipeline metadata."""
     print("Step 5: Exporting results...")
-    
-    # Main output
+
     csv_path = OUTPUT_DIR / "metro_opportunity_scores.csv"
     scored.to_csv(csv_path, index=False)
-    
-    # Pipeline metadata
+
+    json_path = PUBLIC_DIR / "metro_scores.json"
+    records = scored.to_dict(orient="records")
+    records = [{k: (v.item() if hasattr(v, "item") else v) for k, v in r.items()} for r in records]
+    with open(json_path, "w") as f:
+        json.dump(records, f, indent=2)
+
     metadata = {
         "pipeline": "spectrumiq_data_pipeline",
         "version": "1.0.0",
@@ -303,18 +309,20 @@ def export_results(scored: pd.DataFrame):
             "tier_thresholds": {"High Opportunity": ">=70", "Moderate": "45-69", "Low Priority": "<45"},
         },
         "output": {
-            "file": str(csv_path),
+            "csv": str(csv_path),
+            "json": str(json_path),
             "rows": len(scored),
             "metros": scored["metro"].nunique(),
             "specialties": scored["specialty"].nunique(),
         },
     }
-    
+
     meta_path = OUTPUT_DIR / "pipeline_metadata.json"
     with open(meta_path, "w") as f:
         json.dump(metadata, f, indent=2)
-    
+
     print(f"  → {csv_path} ({len(scored)} rows)")
+    print(f"  → {json_path}")
     print(f"  → {meta_path}")
 
 

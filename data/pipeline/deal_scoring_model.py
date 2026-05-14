@@ -205,6 +205,15 @@ def train_model(df_encoded, feature_cols):
     z_test = np.clip(z_test, -20, 20)
     test_probs = 1 / (1 + np.exp(-z_test))
 
+    # Capture training-set probability bounds for stable downstream rescaling.
+    # Scoring future batches uses these fixed bounds so identical features map
+    # to identical health scores across runs.
+    train_z = X_train_b @ weights
+    train_z = np.clip(train_z, -20, 20)
+    train_probs = 1 / (1 + np.exp(-train_z))
+    prob_min_train = float(train_probs.min())
+    prob_max_train = float(train_probs.max())
+
     # Find optimal threshold by maximizing F1
     best_f1 = 0
     best_thresh = 0.5
@@ -263,7 +272,13 @@ def train_model(df_encoded, feature_cols):
     print(f"  → Precision={precision:.3f}, Recall={recall:.3f}, Threshold={best_thresh:.2f}")
     print(f"  → Top 5 features: {', '.join(f for f, _ in coef_importance[:5])}")
 
-    model = {"weights": weights, "means": means, "stds": stds}
+    model = {
+        "weights": weights,
+        "means": means,
+        "stds": stds,
+        "prob_min": prob_min_train,
+        "prob_max": prob_max_train,
+    }
     return model, metrics, feature_cols
 
 
@@ -329,12 +344,14 @@ def score_pipeline(model, feature_cols, n_open=45):
     z = np.clip(z, -20, 20)
     probs = 1 / (1 + np.exp(-z))
 
-    # Rescale to 0-100 using the training distribution
-    # Raw probabilities cluster around the base rate (26%), so we spread them
-    # across the full 0-100 range for a more actionable scoring system
-    min_p, max_p = probs.min(), probs.max()
+    # Rescale to 0-100 using bounds saved at train time. This keeps scores
+    # stable across batches — two deals with identical features always get
+    # the same health score, regardless of which other deals are in the batch.
+    min_p = model["prob_min"]
+    max_p = model["prob_max"]
     range_p = max_p - min_p if max_p > min_p else 1
-    scaled = ((probs - min_p) / range_p * 80 + 10)  # Scale to 10-90 range
+    clipped = np.clip(probs, min_p, max_p)
+    scaled = ((clipped - min_p) / range_p * 80 + 10)  # Scale to 10-90 range
 
     df["win_probability"] = np.round(probs * 100, 1)
     df["deal_health_score"] = np.round(scaled).astype(int)
