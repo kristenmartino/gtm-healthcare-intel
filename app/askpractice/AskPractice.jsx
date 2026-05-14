@@ -256,6 +256,22 @@ export default function AskPractice() {
           <div style={{ fontSize: 10, color: "#475569", marginTop: 6 }}>
             Powered by Claude API · Queries synthetic data for {PRACTICE_DATA.practiceName} ({PRACTICE_DATA.providers.length} providers, {PRACTICE_DATA.payers.length} payers, 12 months)
           </div>
+          <details style={{ marginTop: 8 }}>
+            <summary style={{ fontSize: 11, color: "#64748b", cursor: "pointer", userSelect: "none" }}>
+              How this works — architecture, scope & HIPAA boundaries
+            </summary>
+            <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 8, lineHeight: 1.7, padding: "12px 14px", background: "#0b1120", borderRadius: 8, border: "1px solid #1e293b" }}>
+              <p style={{ margin: "0 0 8px" }}>
+                <strong style={{ color: "#e2e8f0" }}>Grounding:</strong> Same pattern as <a href="/askgtm" style={{ color: "#10b981" }}>AskGTM</a> — the server-side system prompt holds a flattened text summary of the synthetic 12-month practice dataset (5 providers × 6 payers, monthly volumes, revenue, collections, denials, no-shows, procedure mix). Claude reasons over the summary directly. In production this would be a tool-using agent over a practice-data warehouse with a governed metric registry, not text prompt-stuffing.
+              </p>
+              <p style={{ margin: "0 0 8px" }}>
+                <strong style={{ color: "#e2e8f0" }}>Scope:</strong> Aggregate practice performance only — provider productivity, denial trends by payer, collection rates, no-show patterns, payer-mix breakdowns. Questions that require patient-identifiable information ("show me patient John Smith's chart history", "pull up MRN 12345", "which patients are overdue for follow-up") fall outside scope, and the assistant is instructed in the system prompt to decline them.
+              </p>
+              <p style={{ margin: 0 }}>
+                <strong style={{ color: "#e2e8f0" }}>Why the refusal matters:</strong> patient-level access requires an authenticated EHR session, role-based permissions, an audit-log entry tying the query to a documented care relationship, and HIPAA minimum-necessary review. None of those controls live in a chat layer. A model that <em>could</em> answer the question shouldn't, because the surrounding governance doesn't exist. Try asking "which provider had the most no-shows in Q3?" and you'll get a real answer; try "show me MRN 12345" and you'll get a refusal with an explanation.
+              </p>
+            </div>
+          </details>
         </div>
       </div>
     </div>

@@ -139,6 +139,22 @@ export default function Q1Review() {
           </div>
         </Section>
 
+        {/* Q2 GTM Plan — synthesis of the recommendations into sequencing and strategic intent */}
+        <Section title="7. Q2 GTM Plan — Sequencing & Strategic Bet">
+          <P>
+            If I were running Q2, the sequencing matters as much as the actions. <strong>Week 1:</strong> ship the legal-escalation SLA. It is the highest-leverage zero-cost intervention and unlocks ~$180K of stranded Ortho pipeline immediately; nothing else here pays back faster. <strong>Week 2:</strong> reallocate one rep from general-territory coverage to Dermatology, with Chen mentoring the transition — her 41-day cycle and 8-deal quarter are the evidence base, and her demos-per-close ratio of 2.3 vs. the team's 3.1 is a teachable pattern. <strong>Week 4:</strong> launch the structured referral program. Referrals close at 35.7% vs. 14.3% for paid; we need to start refilling top-of-funnel with the channel that actually converts before paid-campaign ICP tightening reduces volume.
+          </P>
+          <P>
+            <strong>The bigger strategic bet:</strong> moving from "we serve all four specialties equally" to "we are the specialty EHR with the best Dermatology workflow in the market, and we win there." Every Q1 metric points the same direction — 34.2% Derm win rate, 112.4% NRR, 3.2% churn, $74K average ACV. The concentration risk is real: a credible Derm-focused entrant in the next 12 months turns our positioning from moat into vulnerability. We mitigate by feeding Ortho win/loss interview findings (P2) directly into the Product roadmap as soon as they land, closing the back door while we double down on the front one.
+          </P>
+          <P>
+            <strong>Pipeline coverage target for Q2:</strong> 3.5x against quota (up from 3.0x). Hitting that requires either growing top-of-funnel ~17% or improving conversion at the same volume. The four P0/P1 recommendations are designed to do both — referrals and paid ICP tightening lift top-of-funnel quality; legal SLA and territory reallocation lift conversion. If all four execute on schedule, the model projects $2.5–2.7M in Q2 bookings (vs. the $2.40M target) and exits Q2 with $8.4M in qualified pipeline.
+          </P>
+          <CalloutBox color="#10b981" title="Q2 Commitments">
+            Two non-negotiables: legal-escalation SLA in week 1, and Derm reallocation by end of week 2. Referral program and paid ICP tightening as P1s with measurable check-ins at week 6. The bigger Dermatology strategic bet is a 4-quarter horizon — Q2 is when we start; Q4 is when we know if it worked.
+          </CalloutBox>
+        </Section>
+
         {/* Footer */}
         <div style={{ borderTop: "2px solid #e2e8f0", paddingTop: 16, marginTop: 40, fontSize: 11, color: "#94a3b8", lineHeight: 1.6 }}>
           <strong>Data Sources:</strong> Synthetic Salesforce Opportunity, Lead, and Account data. Marketing metrics from synthetic HubSpot + Salesforce integration. Churn data from synthetic billing system. All figures are illustrative and modeled on realistic SaaS GTM benchmarks — not derived from any company's actual data.

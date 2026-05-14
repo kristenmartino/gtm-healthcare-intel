@@ -85,6 +85,10 @@ export default function PracticeFlow() {
   const [myCollect, setMyCollect] = useState(94.2);
   const [myReimb, setMyReimb] = useState(295);
   const [myNoShow, setMyNoShow] = useState(9.1);
+  // Diagnostic drill inputs — payer mix and denial-cycle assumptions
+  const [payerCommercial, setPayerCommercial] = useState(55);
+  const [payerGov, setPayerGov] = useState(30);
+  const [resubCycle, setResubCycle] = useState(14);
 
   const benchmarks = useMemo(() => generateBenchmarks(specialty, size), [specialty, size]);
   const darData = benchmarks.map(b => b.daysInAR);
@@ -100,6 +104,56 @@ export default function PracticeFlow() {
   const trendMonths = ["Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar","Apr","May","Jun"];
   const trendDar = [38,37,36.5,37,36,35,36,35.5,36,35,34.5,myDar];
   const trendDenial = [6.8,6.5,6.2,6.0,5.9,5.8,5.7,5.9,5.8,5.6,5.9,myDenial];
+
+  // ─── Days-in-A/R Diagnostic Decomposition ────────────────────────────────
+  // Industry-standard days-to-payment by payer type (MGMA + HFMA published medians).
+  // These are anchors, not absolutes — calibrate to internal billing data in production.
+  const COMMERCIAL_DAYS = 25;
+  const GOV_DAYS = 32;       // Medicare + Medicaid clean claims
+  const PATIENT_DAYS = 65;   // self-pay / patient responsibility aging
+  const payerPatient = Math.max(0, 100 - payerCommercial - payerGov);
+  const commercialContrib = (payerCommercial / 100) * COMMERCIAL_DAYS;
+  const govContrib = (payerGov / 100) * GOV_DAYS;
+  const patientContrib = (payerPatient / 100) * PATIENT_DAYS;
+  // Denial drag: not every denial waits the full resubmission cycle (some pay before resubmission lands)
+  const denialDrag = (myDenial / 100) * resubCycle * 0.8;
+  const predictedDar = commercialContrib + govContrib + patientContrib + denialDrag;
+  // Anything above predicted is process drag — eligibility, posting, follow-up cadence
+  const processDrag = Math.max(0, myDar - predictedDar);
+
+  // Lever analysis — rank interventions by days-of-A/R recovered
+  const levers = [
+    {
+      name: "Cut denial-resubmission cycle",
+      impact: (myDenial / 100) * Math.max(0, resubCycle - 7) * 0.8,
+      action: `${resubCycle}d → 7d resubmission (best-practice clean-claim turnaround)`,
+    },
+    {
+      name: "Reduce first-pass denial rate",
+      impact: Math.max(0, myDenial - 4) / 100 * resubCycle * 0.8,
+      action: `${myDenial.toFixed(1)}% → 4% (50th-percentile target via front-end eligibility + payer-rules check)`,
+    },
+    {
+      name: "Patient-pay collection program",
+      impact: payerPatient > 10 ? ((payerPatient - 8) / 100) * (PATIENT_DAYS - COMMERCIAL_DAYS) : 0,
+      action: `${payerPatient.toFixed(0)}% → 8% patient AR via point-of-service collection + financing options`,
+    },
+    {
+      name: "Tighten back-office process drag",
+      impact: processDrag * 0.6,
+      action: `${processDrag.toFixed(1)}d unexplained → same-day posting, automated eligibility, weekly aged-AR review`,
+    },
+  ].filter(l => l.impact >= 0.5).sort((a, b) => b.impact - a.impact);
+  const topLever = levers[0];
+
+  const segments = [
+    { label: "Commercial payer mix", days: commercialContrib, color: "#0d9488", desc: `${payerCommercial}% of revenue at ~${COMMERCIAL_DAYS}-day clean-claim cycle` },
+    { label: "Gov (Medicare/Medicaid)", days: govContrib, color: "#2563eb", desc: `${payerGov}% at ~${GOV_DAYS}-day FFS cycle` },
+    { label: "Patient-pay aging", days: patientContrib, color: "#d97706", desc: `${payerPatient.toFixed(0)}% at ~${PATIENT_DAYS}-day self-pay aging` },
+    { label: "Denial cycle drag", days: denialDrag, color: "#dc2626", desc: `${myDenial.toFixed(1)}% denial × ${resubCycle}d resubmission` },
+    ...(processDrag >= 0.5 ? [{ label: "Unexplained process drag", days: processDrag, color: "#94a3b8", desc: "Eligibility, posting, follow-up cadence" }] : []),
+  ];
+  const totalSegDays = segments.reduce((a, s) => a + s.days, 0);
 
   return (
     <div style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", ["--bg"]: "#f8fafc", ["--fg"]: "#0f172a", ["--card"]: "#ffffff", ["--border"]: "#e2e8f0", ["--muted"]: "#64748b", ["--accent"]: "#0d9488", background: "var(--bg)", color: "var(--fg)", minHeight: "100vh", padding: 0 }}>
@@ -229,9 +283,101 @@ export default function PracticeFlow() {
           </div>
         </div>
 
+        {/* Diagnostic Drill — decomposes Days in A/R into the four upstream drivers
+            and ranks which intervention recovers the most days. Turns the page from
+            "you're at the Xth percentile" into "and here's specifically why and what
+            to do about it." */}
+        <div style={{ marginTop: 24, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)", padding: 24 }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 4 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Diagnostic Drill — What's Driving Your Days in A/R
+            </div>
+            <div style={{ fontSize: 11, color: "var(--muted)" }}>
+              Your A/R: <strong style={{ color: "var(--fg)" }}>{myDar} days</strong> · Predicted from drivers: <strong style={{ color: "var(--fg)" }}>{predictedDar.toFixed(1)} days</strong>
+            </div>
+          </div>
+          <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.65, margin: "6px 0 18px" }}>
+            Days in A/R is a downstream metric — the sum of four upstream drivers. Knowing you're at the {Math.round(100 - (darData.filter(d => d <= myDar).length / darData.length * 100))}th percentile is the easy diagnosis; identifying which lever to pull is the consultative one. Adjust your payer mix and denial-resubmission cycle below to see how the components decompose.
+          </p>
+
+          {/* Driver inputs */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 20 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", marginBottom: 4 }}>Commercial Payer Mix</div>
+              <input type="range" min={0} max={100} step={1} value={payerCommercial}
+                onChange={e => { const v = Number(e.target.value); setPayerCommercial(v); if (v + payerGov > 100) setPayerGov(100 - v); }}
+                style={{ width: "100%", accentColor: "#0d9488" }} />
+              <div style={{ fontSize: 15, fontWeight: 800 }}>{payerCommercial}%</div>
+              <div style={{ fontSize: 10, color: "var(--muted)" }}>~{COMMERCIAL_DAYS}-day cycle (clean)</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", marginBottom: 4 }}>Gov Payer Mix (Medicare + Medicaid)</div>
+              <input type="range" min={0} max={100} step={1} value={payerGov}
+                onChange={e => { const v = Number(e.target.value); setPayerGov(v); if (payerCommercial + v > 100) setPayerCommercial(100 - v); }}
+                style={{ width: "100%", accentColor: "#0d9488" }} />
+              <div style={{ fontSize: 15, fontWeight: 800 }}>{payerGov}%</div>
+              <div style={{ fontSize: 10, color: "var(--muted)" }}>~{GOV_DAYS}-day FFS cycle · patient-pay auto = {payerPatient.toFixed(0)}%</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", marginBottom: 4 }}>Denial Resubmission Cycle (days)</div>
+              <input type="range" min={5} max={30} step={1} value={resubCycle}
+                onChange={e => setResubCycle(Number(e.target.value))}
+                style={{ width: "100%", accentColor: "#0d9488" }} />
+              <div style={{ fontSize: 15, fontWeight: 800 }}>{resubCycle}d</div>
+              <div style={{ fontSize: 10, color: "var(--muted)" }}>Industry best-practice: 7d</div>
+            </div>
+          </div>
+
+          {/* Stacked decomposition bar */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Where Your A/R Days Come From</div>
+            <div style={{ display: "flex", height: 36, borderRadius: 6, overflow: "hidden", border: "1px solid var(--border)" }}>
+              {segments.map((s, i) => (
+                <div key={i} title={`${s.label}: ${s.days.toFixed(1)} days — ${s.desc}`}
+                  style={{ flex: Math.max(s.days, 0.01), background: s.color, color: "#fff", padding: "0 10px", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", whiteSpace: "nowrap", overflow: "hidden", borderRight: i < segments.length - 1 ? "1px solid rgba(255,255,255,0.2)" : "none" }}>
+                  {s.days >= totalSegDays * 0.08 ? `${s.days.toFixed(1)}d` : ""}
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, marginTop: 10 }}>
+              {segments.map((s, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 11 }}>
+                  <span style={{ width: 10, height: 10, background: s.color, borderRadius: 2, flexShrink: 0, marginTop: 4 }} />
+                  <span style={{ color: "var(--muted)", lineHeight: 1.4 }}>
+                    <strong style={{ color: "var(--fg)" }}>{s.label}</strong> · {s.days.toFixed(1)}d · {s.desc}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Lever recommendation */}
+          {topLever && (
+            <div style={{ background: "#f0fdfa", borderLeft: "4px solid #0d9488", padding: "14px 18px", borderRadius: "0 8px 8px 0" }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "#0d9488", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
+                Highest-Leverage Intervention
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--fg)", marginBottom: 4 }}>
+                {topLever.name} <span style={{ color: "#0d9488" }}>(~{topLever.impact.toFixed(1)}d recovery)</span>
+              </div>
+              <p style={{ fontSize: 12.5, color: "var(--muted)", margin: "0 0 8px", lineHeight: 1.6 }}>
+                {topLever.action}.
+              </p>
+              {levers.length > 1 && (
+                <div style={{ fontSize: 11, color: "var(--muted)", borderTop: "1px solid #ccfbf1", paddingTop: 8, marginTop: 6 }}>
+                  <strong style={{ color: "var(--fg)" }}>Other levers in order:</strong>{" "}
+                  {levers.slice(1).map((l, i) => (
+                    <span key={i}>{i > 0 && " · "}{l.name} (~{l.impact.toFixed(1)}d)</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         <div style={{ marginTop: 24, padding: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
           <p style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.6, margin: 0 }}>
-            <strong>Data Note:</strong> Benchmarks generated from synthetic practice data modeled on published MGMA, HFMA, and CMS cost report distributions for {specialty} practices of size {size}. Not sourced from real practice data. Adjust "Your Practice Metrics" sliders to see where a practice would rank against the peer cohort.
+            <strong>Data Note:</strong> Benchmarks generated from synthetic practice data modeled on published MGMA, HFMA, and CMS cost report distributions for {specialty} practices of size {size}. Not sourced from real practice data. Adjust "Your Practice Metrics" sliders to see where a practice would rank against the peer cohort. Diagnostic Drill anchors (commercial 25d / gov 32d / patient 65d / resubmission 7d best-practice) are published industry medians; production deployments would calibrate these against the practice's own billing system.
           </p>
         </div>
       </div>
