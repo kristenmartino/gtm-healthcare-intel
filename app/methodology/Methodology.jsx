@@ -357,6 +357,24 @@ ORDER BY specialty_segment, revenue_quarter;`,
   },
 ];
 
+const SQL_KEYWORDS_SOURCE = "\\b(SELECT|FROM|JOIN|LEFT JOIN|WHERE|AND|OR|GROUP BY|ORDER BY|HAVING|WITH|AS|ON|CASE|WHEN|THEN|ELSE|END|IN|NOT|NULL|IS|BETWEEN|OVER|PARTITION BY|NULLIF|DISTINCT|TRUE|FALSE|DESC|ASC|SUM|COUNT|AVG|ROUND|MEDIAN|PERCENTILE_CONT|WITHIN GROUP|LAG|ROW_NUMBER|DATEADD|DATEDIFF|DATE_TRUNC|CURRENT_DATE)\\b";
+
+function highlightSqlLine(text) {
+  const re = new RegExp(SQL_KEYWORDS_SOURCE, "g");
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+  while ((match = re.exec(text)) !== null) {
+    if (match.index > lastIndex) parts.push(text.slice(lastIndex, match.index));
+    parts.push(
+      <span key={parts.length} style={{ color: "#ff7b72", fontWeight: 600 }}>{match[0]}</span>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+  return parts;
+}
+
 function SqlBlock({ sql }) {
   return (
     <pre style={{
@@ -368,25 +386,15 @@ function SqlBlock({ sql }) {
         const trimmed = line.trimStart();
         const isComment = trimmed.startsWith("--");
         const indent = line.length - trimmed.length;
-        // Simple keyword highlighting
-        let formatted = trimmed;
-        if (!isComment) {
-          formatted = trimmed
-            .replace(/\b(SELECT|FROM|JOIN|LEFT JOIN|WHERE|AND|OR|GROUP BY|ORDER BY|HAVING|WITH|AS|ON|CASE|WHEN|THEN|ELSE|END|IN|NOT|NULL|IS|BETWEEN|OVER|PARTITION BY|NULLIF|DISTINCT|TRUE|FALSE|DESC|ASC|SUM|COUNT|AVG|ROUND|MEDIAN|PERCENTILE_CONT|WITHIN GROUP|LAG|ROW_NUMBER|DATEADD|DATEDIFF|DATE_TRUNC|CURRENT_DATE)\b/g,
-              match => `<kw>${match}</kw>`);
-        }
         return (
           <div key={i} style={{
             color: isComment ? "#8b949e" : "#c9d1d9",
             fontStyle: isComment ? "italic" : "normal",
             paddingLeft: indent * 7.5,
             minHeight: trimmed === "" ? 12 : "auto",
-          }}
-            dangerouslySetInnerHTML={{
-              __html: formatted.replace(/<kw>(.*?)<\/kw>/g,
-                '<span style="color:#ff7b72;font-weight:600">$1</span>')
-            }}
-          />
+          }}>
+            {isComment ? trimmed : highlightSqlLine(trimmed)}
+          </div>
         );
       })}
     </pre>
@@ -436,7 +444,7 @@ export default function Methodology() {
                   <span style={{ fontSize: 16, fontWeight: 800 }}>{m.name}</span>
                   <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 4, background: "#1e293b", color: "#64748b" }}>{m.category}</span>
                 </div>
-                <div style={{ fontSize: 12, color: "#64748b", marginTop: 4, maxWidth: 700 }}>{m.description.slice(0, 120)}...</div>
+                <div style={{ fontSize: 12, color: "#64748b", marginTop: 4, maxWidth: 700 }}>{m.description.split(". ")[0] + "."}</div>
               </div>
               <span style={{ color: "#475569", fontSize: 18, transition: "transform 0.2s", transform: expanded === i ? "rotate(90deg)" : "none" }}>›</span>
             </div>
