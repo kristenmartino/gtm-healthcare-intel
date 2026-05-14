@@ -115,6 +115,15 @@ export default function SpecialtyPulse() {
 
   const alerts = procedures.filter(p => p.accelerating || p.growth > 6 || p.growth < -2);
 
+  const crossSpecialtyHighlights = useMemo(() => {
+    return Object.entries(SPECIALTIES).map(([name, { procedures }]) => {
+      const top = procedures
+        .map(p => ({ ...p, growth: Number(cagr(p.volumes[0], p.volumes[4], 4)) }))
+        .sort((a, b) => b.growth - a.growth)[0];
+      return { specialty: name, code: top.code, procedure: top.name, growth: top.growth };
+    });
+  }, []);
+
   return (
     <div style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", background: "#0b1120", color: "#e2e8f0", minHeight: "100vh" }}>
       <div style={{ padding: "28px 32px 0", maxWidth: 1100, margin: "0 auto" }}>
@@ -128,7 +137,32 @@ export default function SpecialtyPulse() {
           <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#fbbf24" }}>SpecialtyPulse</span>
         </div>
         <h1 style={{ fontSize: 26, fontWeight: 800, margin: "8px 0 4px" }}>Procedure Volume & Reimbursement Trend Monitor</h1>
-        <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 20px" }}>CMS Medicare Physician PUF data · 2021–2025 · Specialty procedure trends, reimbursement shifts, and growth signals</p>
+        <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 16px" }}>CMS Medicare Physician PUF data · 2021–2025 · Specialty procedure trends, reimbursement shifts, and growth signals</p>
+
+        {/* Cross-specialty highlights — surfaces the fastest-growing procedure
+            from each specialty so the page has visible content across all four
+            verticals on first paint, not just whichever specialty is selected. */}
+        <div style={{ marginBottom: 20, background: "#111b2e", borderRadius: 10, border: "1px solid #1e293b", padding: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#fbbf24", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
+            Cross-Specialty Highlights — Fastest-Growing Procedure (4-yr CAGR)
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+            {crossSpecialtyHighlights.map(h => (
+              <button key={h.specialty} onClick={() => setSpecialty(h.specialty)} style={{
+                textAlign: "left", padding: "12px 14px", borderRadius: 8,
+                border: specialty === h.specialty ? "1.5px solid #fbbf24" : "1px solid #1e293b",
+                background: specialty === h.specialty ? "#fbbf240a" : "#0b1120",
+                color: "#e2e8f0", cursor: "pointer", transition: "all 0.15s", fontFamily: "inherit",
+              }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>{h.specialty}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, marginTop: 4, color: "#e2e8f0", lineHeight: 1.3 }}>{h.procedure.split("(")[0].trim()}</div>
+                <div style={{ fontSize: 10, color: "#475569", marginTop: 2 }}>CPT {h.code}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#10b981", marginTop: 6 }}>+{h.growth}%</div>
+              </button>
+            ))}
+          </div>
+          <div style={{ fontSize: 11, color: "#475569", marginTop: 10 }}>Click a card to view all procedures for that specialty.</div>
+        </div>
 
         {/* Specialty tabs */}
         <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>

@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+"use client";
+import { useState, useMemo } from "react";
 
 const SPECIALTIES = ["Dermatology", "Orthopedics", "Gastroenterology", "Ophthalmology", "Urology"];
 
@@ -18,28 +19,12 @@ function Badge({ children, color }) {
   );
 }
 
-export default function SpectrumIQ() {
+export default function SpectrumIQ({ initialData = [] }) {
   const [specialty, setSpecialty] = useState("Dermatology");
   const [expanded, setExpanded] = useState(null);
   const [sortBy, setSortBy] = useState("composite_score");
-  const [allData, setAllData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [dataSource, setDataSource] = useState("");
-
-  // Load pipeline output
-  useEffect(() => {
-    fetch("/metro_scores.json")
-      .then(res => res.json())
-      .then(data => {
-        setAllData(data);
-        setDataSource(`Pipeline output: ${data.length} metro × specialty scores from spectrumiq_pipeline.py`);
-        setLoading(false);
-      })
-      .catch(() => {
-        setDataSource("Error loading pipeline data");
-        setLoading(false);
-      });
-  }, []);
+  const allData = initialData;
+  const dataSource = `Pipeline output: ${allData.length} metro × specialty scores from spectrumiq_pipeline.py`;
 
   const filtered = useMemo(() => {
     const rows = allData.filter(d => d.specialty === specialty);
@@ -48,16 +33,6 @@ export default function SpectrumIQ() {
 
   const tierColor = (score) => score >= 70 ? "#0d9488" : score >= 45 ? "#d97706" : "#94a3b8";
   const tierLabel = (score) => score >= 70 ? "High Opportunity" : score >= 45 ? "Moderate" : "Low Priority";
-
-  if (loading) {
-    return (
-      <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#0b1120", color: "#e2e8f0", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 14, color: "#64748b", animation: "pulse 1.5s infinite" }}>Loading pipeline data...</div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", background: "var(--bg)", color: "var(--fg)", minHeight: "100vh", padding: 0, ["--bg"]: "#0b1120", ["--fg"]: "#e2e8f0", ["--card"]: "#111b2e", ["--card-border"]: "#1e293b", ["--accent"]: "#38bdf8", ["--accent2"]: "#0d9488", ["--bar-bg"]: "#1e293b", ["--muted"]: "#64748b" }}>

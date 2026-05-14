@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+"use client";
+import { useState, useMemo } from "react";
 
 function seededRandom(seed) { let s = seed; return () => { s = (s * 16807 + 0) % 2147483647; return s / 2147483647; }; }
 
@@ -74,19 +75,12 @@ function MetricCard({ label, value, sub, color }) {
   );
 }
 
-export default function ConvertPath() {
+export default function ConvertPath({ initialDealScores = [] }) {
   const [specialty, setSpecialty] = useState("All");
   const [source, setSource] = useState("All");
   const [quarter, setQuarter] = useState("All");
   const [tab, setTab] = useState("funnel");
-  const [dealScores, setDealScores] = useState([]);
-
-  useEffect(() => {
-    fetch("/deal_scores.json")
-      .then(r => r.json())
-      .then(data => setDealScores(data))
-      .catch(() => {});
-  }, []);
+  const dealScores = initialDealScores;
 
   const filtered = useMemo(() => {
     return ALL_DEALS.filter(d =>
