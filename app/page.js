@@ -18,7 +18,7 @@ const PROJECTS = [
     gradient: "linear-gradient(135deg, #f59e0b, #10b981)",
     icon: "N",
     maturity: "Governance → Prescriptive",
-    gtmProblem: "How do we get Sales, Marketing, and Finance to agree on what 'pipeline' means — and then get them to actually use the standardized reports?",
+    gtmProblem: "Whether to enforce Stage 2+ with $5K floor as the company-wide pipeline definition before next quarter's board deck — and what to do about the three teams still running their own shadow spreadsheets.",
     featured: true,
     isNew: true,
   },
@@ -31,7 +31,7 @@ const PROJECTS = [
     gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)",
     icon: "A",
     maturity: "Prescriptive",
-    gtmProblem: "What if a sales leader could ask 'Why are we losing Ortho deals?' and get a data-backed answer with a recommended action — without filing a Jira ticket?",
+    gtmProblem: "Whether to give field sales leaders a conversational analytics layer over the GTM warehouse — trading the static dashboard tier for unprompted self-serve, and trusting the metric registry to keep the answers governed.",
     featured: true,
     isNew: true,
   },
@@ -44,7 +44,7 @@ const PROJECTS = [
     gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)",
     icon: "C",
     maturity: "Diagnostic → Predictive",
-    gtmProblem: "Where are we losing deals in the funnel, and what's the revenue impact of fixing the biggest drop-off stage?",
+    gtmProblem: "Where to spend the next quarter's RevOps cycles — Lead→Qualified is the largest leak at $1.96M of recoverable pipeline, and the choice is whether SDR headcount or legal-review SLA gets the resource.",
   },
   {
     name: "SpectrumIQ",
@@ -55,7 +55,7 @@ const PROJECTS = [
     gradient: "linear-gradient(135deg, #38bdf8, #0d9488)",
     icon: "S",
     maturity: "Diagnostic",
-    gtmProblem: "Which metro markets should the sales team prioritize next quarter — and what data backs that decision?",
+    gtmProblem: "Which 5 metros to staff a specialty-EHR sales pod against next year, weighted by underserved provider density (CMS NPPES), demographic growth (Census), and Medicare utilization — and which markets to deprioritize despite high population.",
   },
   {
     name: "PracticeFlow",
@@ -66,7 +66,7 @@ const PROJECTS = [
     gradient: "linear-gradient(135deg, #0d9488, #14b8a6)",
     icon: "P",
     maturity: "Descriptive",
-    gtmProblem: "How do we give practices a reason to stay on the platform through data they can't get elsewhere?",
+    gtmProblem: "Whether to make peer-cohort RCM benchmarking the centerpiece of the next renewal pitch — and which 5 KPIs (Days in A/R, denial rate, collection rate, no-show, payer mix) to anchor it on for the practice managers who'll actually open the report.",
   },
   {
     name: "SpecialtyPulse",
@@ -77,7 +77,7 @@ const PROJECTS = [
     gradient: "linear-gradient(135deg, #f59e0b, #ef4444)",
     icon: "S",
     maturity: "Descriptive → Diagnostic",
-    gtmProblem: "Which specialties are seeing procedure volume growth that signals expanding EHR demand?",
+    gtmProblem: "Which specialty vertical to fund product investment in for the next 18 months — derm laser/Mohs has a 9% CAGR tailwind, ortho ASC migration is the wedge in joint arthroplasty, and ophtho MIGS is the highest-growth signal in the dataset.",
   },
   {
     name: "AskPractice",
@@ -88,7 +88,7 @@ const PROJECTS = [
     gradient: "linear-gradient(135deg, #10b981, #059669)",
     icon: "A",
     maturity: "Prescriptive",
-    gtmProblem: "How do we make practice data accessible to non-technical users?",
+    gtmProblem: "Whether natural-language practice analytics belongs on the SMB renewal-pitch checklist — and which questions practice managers actually ask vs. which the assistant must refuse on HIPAA grounds.",
   },
 ];
 
@@ -163,7 +163,7 @@ export default function Home() {
                     <p style={{ fontSize: 14, color: "#94a3b8", lineHeight: 1.6, marginBottom: 12 }}>{p.pitch}</p>
 
                     <div style={{ background: "#0b1120", borderRadius: 8, padding: "10px 14px", marginBottom: 12 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: p.color }}>GTM Question: </span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: p.color }}>GTM Decision: </span>
                       <span style={{ fontSize: 12, color: "#94a3b8" }}>{p.gtmProblem}</span>
                     </div>
 
