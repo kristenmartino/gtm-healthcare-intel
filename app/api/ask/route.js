@@ -19,7 +19,9 @@ function generatePracticeData() {
   const r = seededRandom(42);
   const rand = (min, max) => Math.round((r() * (max - min) + min) * 100) / 100;
 
-  const providers = ["Dr. Sarah Chen", "Dr. Marcus Rivera", "Dr. Emily Okafor", "Dr. James Patel", "Dr. Lisa Wong"];
+  // Providers intentionally use different surnames than the GTM sales reps so
+  // a careful reader doesn't conflate the two personas.
+  const providers = ["Dr. Anya Lin", "Dr. Priya Shah", "Dr. Maya Singh", "Dr. Devon Brooks", "Dr. Hana Yamamoto"];
   const payers = ["Blue Cross", "Aetna", "UnitedHealth", "Medicare", "Cigna", "Self-Pay"];
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const months = [];
@@ -27,7 +29,7 @@ function generatePracticeData() {
   for (let m = 0; m < 12; m++) {
     const monthData = { month: monthNames[m], year: 2025, providers: {} };
     providers.forEach((p) => {
-      const base = p.includes("Chen") ? 1.1 : p.includes("Rivera") ? 0.95 : p.includes("Okafor") ? 1.05 : p.includes("Patel") ? 0.88 : 1.0;
+      const base = p.includes("Lin") ? 1.1 : p.includes("Shah") ? 0.95 : p.includes("Singh") ? 1.05 : p.includes("Brooks") ? 0.88 : 1.0;
       const seasonal = 1 + 0.08 * Math.sin((m - 3) * Math.PI / 6);
       monthData.providers[p] = {
         patients: Math.round(rand(140, 210) * base * seasonal),
@@ -126,7 +128,11 @@ export async function POST(request) {
       console.error("Anthropic API error:", error.status, error.message);
       return NextResponse.json({ error: "Upstream model request failed" }, { status: 502 });
     }
-    console.error("AskPractice route error:", error);
+    if (error?.message?.includes("Could not resolve authentication")) {
+      console.error("AskPractice route error: ANTHROPIC_API_KEY not set in this environment");
+      return NextResponse.json({ error: "AI service not configured for this environment" }, { status: 503 });
+    }
+    console.error("AskPractice route error:", error?.constructor?.name, "-", error?.message);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
