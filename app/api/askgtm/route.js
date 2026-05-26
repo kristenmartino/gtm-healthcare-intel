@@ -23,8 +23,20 @@ function generateGTMData() {
   const reps = ["Sarah Chen", "Marcus Rivera", "Emily Okafor", "James Patel", "Lisa Wong", "David Kim"];
   const specialties = ["Dermatology", "Orthopedics", "Gastroenterology", "Ophthalmology"];
   const sources = ["Inbound", "Outbound", "Referral", "Trade Show", "Partner"];
-  const stages = ["Prospecting", "Qualified", "Demo Scheduled", "Proposal Sent", "Negotiation", "Closed Won", "Closed Lost"];
   const quarters = ["Q3 2024", "Q4 2024", "Q1 2025"];
+  // Specialty-biased outcome probabilities calibrated to Q1 Review's win rates:
+  // Derm 34%, Gastro 26%, Ophtho 23%, Ortho 26% baseline / 14% in Q1 2025 due
+  // to the legal-review bottleneck. Each cell holds {P(won), P(lost)}; remainder
+  // is "open at some stage." Closure rate is ~50% per deal so the win rate of
+  // closed deals matches Q1 Review's numbers.
+  const OUTCOME = {
+    Dermatology:      { won: 0.17, lost: 0.33 }, // 34% win rate of closed
+    Gastroenterology: { won: 0.13, lost: 0.37 }, // 26%
+    Ophthalmology:    { won: 0.11, lost: 0.39 }, // 23%
+    Orthopedics:      { won: 0.13, lost: 0.37 }, // 26% baseline
+  };
+  const ORTHO_Q1_OUTCOME = { won: 0.07, lost: 0.43 }; // 14% — Q1 2025 legal-review collapse
+  const OPEN_STAGES = ["Prospecting", "Qualified", "Demo Scheduled", "Proposal Sent", "Negotiation"];
 
   const deals = [];
   for (let i = 0; i < 280; i++) {
@@ -32,13 +44,21 @@ function generateGTMData() {
     const spec = specialties[Math.floor(r() * specialties.length)];
     const src = sources[Math.floor(r() * sources.length)];
     const q = quarters[Math.floor(r() * quarters.length)];
-    const stageIdx = Math.floor(r() * stages.length);
-    const won = stages[stageIdx] === "Closed Won";
-    const lost = stages[stageIdx] === "Closed Lost";
+    const outcomeRoll = r();
+    const o = (spec === "Orthopedics" && q === "Q1 2025") ? ORTHO_Q1_OUTCOME : OUTCOME[spec];
+    let stage, won, lost;
+    if (outcomeRoll < o.won) { stage = "Closed Won"; won = true; lost = false; }
+    else if (outcomeRoll < o.won + o.lost) { stage = "Closed Lost"; won = false; lost = true; }
+    else {
+      const openRoll = (outcomeRoll - o.won - o.lost) / (1 - o.won - o.lost);
+      stage = OPEN_STAGES[Math.min(OPEN_STAGES.length - 1, Math.floor(openRoll * OPEN_STAGES.length))];
+      won = false; lost = false;
+    }
     const acv = Math.round(rand(8000, 185000));
     const daysInPipeline = Math.round(rand(12, 95));
-    deals.push({ rep, specialty: spec, source: src, quarter: q, stage: stages[stageIdx], won, lost, acv, daysInPipeline, practiceSize: ["Solo", "Small", "Medium", "Large"][Math.floor(r() * 4)] });
+    deals.push({ rep, specialty: spec, source: src, quarter: q, stage, won, lost, acv, daysInPipeline, practiceSize: ["Solo", "Small", "Medium", "Large"][Math.floor(r() * 4)] });
   }
+  const stages = [...OPEN_STAGES, "Closed Won", "Closed Lost"];
 
   const marketing = quarters.map(q => ({
     quarter: q,

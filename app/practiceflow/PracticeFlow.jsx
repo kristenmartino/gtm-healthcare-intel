@@ -115,22 +115,27 @@ export default function PracticeFlow() {
   const commercialContrib = (payerCommercial / 100) * COMMERCIAL_DAYS;
   const govContrib = (payerGov / 100) * GOV_DAYS;
   const patientContrib = (payerPatient / 100) * PATIENT_DAYS;
-  // Denial drag: not every denial waits the full resubmission cycle (some pay before resubmission lands)
-  const denialDrag = (myDenial / 100) * resubCycle * 0.8;
+  // Denial drag: denied claims pay through the full resubmission cycle AND THEN
+  // the standard payment cycle on the resubmitted claim. Underestimating this is
+  // the most common mistake in RCM modeling.
+  const denialDrag = (myDenial / 100) * (resubCycle + COMMERCIAL_DAYS);
   const predictedDar = commercialContrib + govContrib + patientContrib + denialDrag;
   // Anything above predicted is process drag — eligibility, posting, follow-up cadence
   const processDrag = Math.max(0, myDar - predictedDar);
 
-  // Lever analysis — rank interventions by days-of-A/R recovered
+  // Lever analysis — rank interventions by days-of-A/R recovered. Each lever's
+  // impact is computed at the current value of the other levers (marginal, not
+  // standalone), since the formula scales linearly in both denial-rate and
+  // resub-cycle, the levers don't double-count when summed.
   const levers = [
     {
       name: "Cut denial-resubmission cycle",
-      impact: (myDenial / 100) * Math.max(0, resubCycle - 7) * 0.8,
-      action: `${resubCycle}d → 7d resubmission (best-practice clean-claim turnaround)`,
+      impact: (myDenial / 100) * Math.max(0, resubCycle - 7),
+      action: `${resubCycle}d → 7d resubmission (best-practice time-to-resubmit)`,
     },
     {
       name: "Reduce first-pass denial rate",
-      impact: Math.max(0, myDenial - 4) / 100 * resubCycle * 0.8,
+      impact: Math.max(0, myDenial - 4) / 100 * (resubCycle + COMMERCIAL_DAYS),
       action: `${myDenial.toFixed(1)}% → 4% (50th-percentile target via front-end eligibility + payer-rules check)`,
     },
     {
