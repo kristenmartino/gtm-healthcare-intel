@@ -181,7 +181,11 @@ export async function POST(request) {
       console.error("Anthropic API error:", error.status, error.message);
       return NextResponse.json({ error: "Upstream model request failed" }, { status: 502 });
     }
-    console.error("AskGTM route error:", error);
+    if (error?.message?.includes("Could not resolve authentication")) {
+      console.error("AskGTM route error: ANTHROPIC_API_KEY not set in this environment");
+      return NextResponse.json({ error: "AI service not configured for this environment" }, { status: 503 });
+    }
+    console.error("AskGTM route error:", error?.constructor?.name, "-", error?.message);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
