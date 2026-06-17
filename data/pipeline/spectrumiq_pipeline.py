@@ -10,7 +10,7 @@ Data Sources (all public, no authentication required):
   - CMS Medicare Enrollment: https://data.cms.gov/summary-statistics-on-beneficiary-enrollment/
 
 Usage:
-  pip install pandas pyarrow requests duckdb
+  pip install pandas pyarrow duckdb
   python spectrumiq_pipeline.py
 
 Output:

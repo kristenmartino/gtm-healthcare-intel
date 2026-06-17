@@ -1,3 +1,9 @@
 pandas>=2.0
 numpy>=1.24
 pytest>=7.0
+
+# Optional — only needed for the real CMS NPPES path in
+# spectrumiq_pipeline.py (the synthetic-data path and the test
+# suite run without these).
+duckdb>=0.9
+pyarrow>=14.0

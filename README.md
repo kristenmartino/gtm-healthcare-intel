@@ -55,7 +55,7 @@ gtm-healthcare-intel/
 │   │   ├── spectrumiq_pipeline.py   # CMS NPPES + Census ETL → metro scores
 │   │   ├── deal_scoring_model.py    # L2 logistic regression deal scorer
 │   │   ├── test_pipeline.py         # SpectrumIQ pipeline tests (30 tests)
-│   │   └── test_deal_scoring.py     # Deal scoring model tests (34 tests)
+│   │   └── test_deal_scoring.py     # Deal scoring model tests (36 tests)
 │   └── output/
 │       ├── pipeline_metadata.json
 │       └── model_metrics.json
@@ -96,12 +96,12 @@ python deal_scoring_model.py     # → public/deal_scores.json
 
 ### Tests
 
-64 pytest tests across both pipelines covering data generation, feature engineering, model training, scoring, risk tier thresholds, recommendation logic, and output file validation.
+66 pytest tests across both pipelines covering data generation, feature engineering, model training, scoring, risk tier thresholds, recommendation logic, and output file validation.
 
 ```bash
 cd data/pipeline
 pytest test_pipeline.py -v       # 30 tests — SpectrumIQ pipeline
-pytest test_deal_scoring.py -v   # 34 tests — deal scoring model
+pytest test_deal_scoring.py -v   # 36 tests — deal scoring model
 ```
 
 ## Tech Stack
@@ -110,7 +110,7 @@ pytest test_deal_scoring.py -v   # 34 tests — deal scoring model
 - **Frontend:** React 18 (inline styles, no component library)
 - **AI:** Anthropic Claude API (AskPractice, AskGTM)
 - **Data Pipelines:** Python (pandas, NumPy), L2 logistic regression
-- **Testing:** pytest (64 tests across both pipelines)
+- **Testing:** pytest (66 tests across both pipelines)
 - **Deployment:** Vercel with GitHub auto-deploys
 - **Domain:** Custom subdomain via Vercel DNS
 
