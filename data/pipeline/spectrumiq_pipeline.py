@@ -1,8 +1,10 @@
 """
 SpectrumIQ Data Pipeline
 ========================
-Downloads and processes real CMS NPPES provider data + Census metro populations
-to score U.S. metro areas for specialty EHR adoption opportunity.
+Scores U.S. metro areas for specialty EHR adoption opportunity from CMS NPPES
+provider data + Census metro populations. Reads the real CMS NPPES file when one
+is supplied (NPPES_PATH); otherwise generates synthetic data modeled on the
+published NPPES distributions.
 
 Data Sources (all public, no authentication required):
   - CMS NPPES: https://download.cms.gov/nppes/NPI_Files.html
@@ -36,7 +38,7 @@ PUBLIC_DIR = Path("public")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 PUBLIC_DIR.mkdir(parents=True, exist_ok=True)
 
-# ModMed's core specialties mapped to NPPES taxonomy codes
+# Target specialty verticals mapped to NPPES taxonomy codes
 # Source: https://taxonomy.nucc.org/
 SPECIALTY_TAXONOMY = {
     "Dermatology": ["207N00000X", "207ND0101X", "207ND0900X", "207NI0002X", "207NP0225X", "207NS0135X"],
