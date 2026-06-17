@@ -258,7 +258,7 @@ function generateMetricTimeSeries() {
 
   // Win Rate by specialty (weekly)
   specialties.forEach(s => {
-    const base = s === "Dermatology" ? 32 : s === "Orthopedics" ? 24 : s === "Gastro" ? 26 : 22;
+    const base = s === "Dermatology" ? 32 : s === "Orthopedics" ? 24 : s === "Gastroenterology" ? 26 : 22;
     series[`win_rate_${s}`] = {
       metric: "Win Rate", segment: s, unit: "%",
       values: Array.from({ length: weeks }, (_, i) => {

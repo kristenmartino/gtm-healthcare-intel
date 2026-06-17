@@ -201,7 +201,7 @@ export default function Home() {
             <div className="resource-card" style={{ background: "#111b2e", borderRadius: 10, padding: "16px 18px", border: "1px solid #1e293b", cursor: "pointer", transition: "border-color 0.2s", "--hover-border": "#10b98160" }}>
               <div style={{ fontSize: 16, marginBottom: 6 }}>🔧</div>
               <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Data Pipeline (GitHub)</div>
-              <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>Python ETL pipeline processing real CMS NPPES + Census data into SpectrumIQ opportunity scores. pandas + NumPy.</div>
+              <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>Python ETL pipeline turning CMS NPPES + Census public data into SpectrumIQ opportunity scores — synthetic by default, with a real-NPPES path. pandas + NumPy.</div>
             </div>
           </a>
         </div>
