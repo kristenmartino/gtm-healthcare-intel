@@ -90,7 +90,7 @@ export default function Q1Review() {
               ["Okafor", "$400K", "95%", "6", "$63K", "44d", "$1.1M"],
               ["Patel", "$350K", "78%", "4", "$68K", "58d", "$720K"],
               ["Wong", "$400K", "89%", "5", "$71K", "46d", "$1.0M"],
-              ["Kim", "$350K", "81%", "2", "$142K", "$68d", "$1.2M"],
+              ["Kim", "$350K", "81%", "2", "$142K", "68d", "$1.2M"],
             ]}
           />
           <P><strong>Chen</strong> is the top performer at 112% attainment, driven by volume (8 deals) and the shortest average cycle (41 days). Her approach of front-loading demos early in the evaluation process is working — she averages 2.3 demos per closed deal vs. 3.1 for the team.</P>
