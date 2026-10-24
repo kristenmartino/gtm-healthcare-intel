@@ -5,6 +5,7 @@ import { EVIDENCE_RULES } from "../../../lib/assistant-grounding.mjs";
 
 import { PRACTICE_DATA, practiceDenialSummary } from "../../../lib/practice-scenario.mjs";
 import { answerPracticeDenials } from "../../../lib/practice-answers.mjs";
+import { answerPracticeRevenue } from "../../../lib/practice-revenue.mjs";
 
 const anthropic = new Anthropic();
 
@@ -68,7 +69,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Question exceeds 2000-character limit" }, { status: 400 });
     }
 
-    const calculated = answerPracticeDenials(question);
+    const calculated = answerPracticeRevenue(question) || answerPracticeDenials(question);
     if (calculated) return NextResponse.json({ content: [{ type: "text", text: calculated }], source: "scenario-calculation" });
 
     const message = await anthropic.messages.create({
