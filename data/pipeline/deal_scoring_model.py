@@ -284,6 +284,25 @@ def train_model(df_encoded, feature_cols):
 
 # ─── Step 4: Score Open Pipeline ─────────────────────────────────────────────
 
+def recommend_deal_actions(row):
+    recs = []
+    if row["days_in_current_stage"] > 20:
+        recs.append(f"Stalled {row['days_in_current_stage']}d in stage — escalate with manager check-in")
+    if row["days_since_last_activity"] > 14:
+        recs.append(f"No activity in {row['days_since_last_activity']}d — schedule touchpoint immediately")
+    if not row["has_champion"]:
+        recs.append("No champion identified — prioritize stakeholder mapping")
+    if row["competitor_mentioned"]:
+        recs.append("Competitor in play — prepare competitive displacement materials")
+    if row["legal_review_days"] > 10:
+        recs.append(f"Legal review at {row['legal_review_days']}d — trigger escalation protocol")
+    if row["acv"] > 100000 and row["deal_health_score"] < 50:
+        recs.append(f"High-value deal (${row['acv']:,}) at risk — consider executive sponsor involvement")
+    if not recs:
+        recs.append(f"No rule-based flags detected. Model tier: {row['risk_tier']}; review the score before acting.")
+    return recs
+
+
 def score_pipeline(model, feature_cols, n_open=45):
     """Generate and score open pipeline deals."""
     print("Step 4: Scoring open pipeline...")
@@ -368,21 +387,7 @@ def score_pipeline(model, feature_cols, n_open=45):
     # Generate prescriptive recommendations
     recommendations = []
     for _, row in df.iterrows():
-        recs = []
-        if row["days_in_current_stage"] > 20:
-            recs.append(f"Stalled {row['days_in_current_stage']}d in stage — escalate with manager check-in")
-        if row["days_since_last_activity"] > 14:
-            recs.append(f"No activity in {row['days_since_last_activity']}d — schedule touchpoint immediately")
-        if not row["has_champion"]:
-            recs.append("No champion identified — prioritize stakeholder mapping")
-        if row["competitor_mentioned"]:
-            recs.append("Competitor in play — prepare competitive displacement materials")
-        if row["legal_review_days"] > 10:
-            recs.append(f"Legal review at {row['legal_review_days']}d — trigger escalation protocol")
-        if row["acv"] > 100000 and row["deal_health_score"] < 50:
-            recs.append(f"High-value deal (${row['acv']:,}) at risk — consider executive sponsor involvement")
-        if not recs:
-            recs.append("Deal healthy — maintain current cadence")
+        recs = recommend_deal_actions(row)
         recommendations.append(recs)
 
     df["recommendations"] = recommendations

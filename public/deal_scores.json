@@ -135,7 +135,7 @@
     "win_probability": 29.0,
     "risk_tier": "Needs Attention",
     "recommendations": [
-      "Deal healthy \u2014 maintain current cadence"
+      "No rule-based flags detected. Model tier: Needs Attention; review the score before acting."
     ]
   },
   {
@@ -228,7 +228,7 @@
     "win_probability": 20.7,
     "risk_tier": "Needs Attention",
     "recommendations": [
-      "Deal healthy \u2014 maintain current cadence"
+      "No rule-based flags detected. Model tier: Needs Attention; review the score before acting."
     ]
   },
   {
@@ -391,7 +391,7 @@
     "win_probability": 48.8,
     "risk_tier": "On Track",
     "recommendations": [
-      "Deal healthy \u2014 maintain current cadence"
+      "No rule-based flags detected. Model tier: On Track; review the score before acting."
     ]
   },
   {
@@ -508,7 +508,7 @@
     "win_probability": 44.8,
     "risk_tier": "On Track",
     "recommendations": [
-      "Deal healthy \u2014 maintain current cadence"
+      "No rule-based flags detected. Model tier: On Track; review the score before acting."
     ]
   },
   {
@@ -531,7 +531,7 @@
     "win_probability": 36.2,
     "risk_tier": "On Track",
     "recommendations": [
-      "Deal healthy \u2014 maintain current cadence"
+      "No rule-based flags detected. Model tier: On Track; review the score before acting."
     ]
   },
   {
@@ -554,7 +554,7 @@
     "win_probability": 21.3,
     "risk_tier": "Needs Attention",
     "recommendations": [
-      "Deal healthy \u2014 maintain current cadence"
+      "No rule-based flags detected. Model tier: Needs Attention; review the score before acting."
     ]
   },
   {
@@ -600,7 +600,7 @@
     "win_probability": 39.5,
     "risk_tier": "On Track",
     "recommendations": [
-      "Deal healthy \u2014 maintain current cadence"
+      "No rule-based flags detected. Model tier: On Track; review the score before acting."
     ]
   },
   {
@@ -671,7 +671,7 @@
     "win_probability": 27.7,
     "risk_tier": "Needs Attention",
     "recommendations": [
-      "Deal healthy \u2014 maintain current cadence"
+      "No rule-based flags detected. Model tier: Needs Attention; review the score before acting."
     ]
   },
   {
@@ -694,7 +694,7 @@
     "win_probability": 47.6,
     "risk_tier": "On Track",
     "recommendations": [
-      "Deal healthy \u2014 maintain current cadence"
+      "No rule-based flags detected. Model tier: On Track; review the score before acting."
     ]
   },
   {
@@ -741,7 +741,7 @@
     "win_probability": 45.8,
     "risk_tier": "On Track",
     "recommendations": [
-      "Deal healthy \u2014 maintain current cadence"
+      "No rule-based flags detected. Model tier: On Track; review the score before acting."
     ]
   },
   {
@@ -764,7 +764,7 @@
     "win_probability": 33.8,
     "risk_tier": "On Track",
     "recommendations": [
-      "Deal healthy \u2014 maintain current cadence"
+      "No rule-based flags detected. Model tier: On Track; review the score before acting."
     ]
   },
   {

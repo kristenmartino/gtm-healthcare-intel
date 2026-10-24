@@ -19,6 +19,7 @@ from deal_scoring_model import (
     engineer_features,
     train_model,
     score_pipeline,
+    recommend_deal_actions,
 )
 
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
@@ -302,8 +303,8 @@ class TestRecommendationLogic:
                     f"Deal {row['deal_id']} with competitor missing competitive recommendation"
                 )
 
-    def test_healthy_deals_get_maintain_rec(self, scored):
-        """Deals with no risk flags should get 'maintain cadence' recommendation."""
+    def test_unflagged_deals_preserve_model_tier(self, scored):
+        """No heuristic flags is distinct from model-rated health."""
         healthy = scored[
             (scored["days_in_current_stage"] <= 20) &
             (scored["days_since_last_activity"] <= 14) &
@@ -315,8 +316,8 @@ class TestRecommendationLogic:
         if len(healthy) > 0:
             for _, row in healthy.iterrows():
                 recs = " ".join(row["recommendations"])
-                assert "maintain" in recs.lower() or "healthy" in recs.lower(), (
-                    f"Healthy deal {row['deal_id']} missing maintain-cadence recommendation"
+                assert "No rule-based flags detected" in recs and str(row["risk_tier"]) in recs, (
+                    f"Healthy deal {row['deal_id']} missing explicit model tier"
                 )
 
 
@@ -359,3 +360,26 @@ class TestOutputFiles:
         ]
         for field in required:
             assert field in data, f"model_metrics.json missing field: {field}"
+
+@pytest.mark.parametrize("tier,score", [("At Risk",20),("Needs Attention",35),("On Track",60),("Strong",80)])
+def test_no_flags_never_asserts_a_deal_is_healthy(tier, score):
+    row = {"days_in_current_stage":10,"days_since_last_activity":2,"has_champion":True,
+           "competitor_mentioned":False,"legal_review_days":2,"acv":20000,
+           "deal_health_score":score,"risk_tier":tier}
+    text = " ".join(recommend_deal_actions(row))
+    assert "No rule-based flags detected" in text
+    assert tier in text
+    assert "healthy" not in text.lower()
+
+
+def test_published_recommendations_match_rules_and_retain_attention_tiers():
+    with open(os.path.join(PUBLIC_DIR, "deal_scores.json")) as f:
+        deals = json.load(f)
+    for deal in deals:
+        assert deal["recommendations"] == recommend_deal_actions(deal)
+        assert "Deal healthy" not in " ".join(deal["recommendations"])
+    formerly_conflicting = {d["deal_id"]:d for d in deals if d["deal_id"] in {"OPP-OPEN-006","OPP-OPEN-010","OPP-OPEN-024","OPP-OPEN-029"}}
+    assert len(formerly_conflicting) == 4
+    for deal in formerly_conflicting.values():
+        assert deal["risk_tier"] == "Needs Attention"
+        assert "Needs Attention" in deal["recommendations"][0]
