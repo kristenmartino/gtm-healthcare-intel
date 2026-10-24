@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { NRR_FORMULA } from "../../lib/metric-formulas.mjs";
 
 // ═══════════════════════════════════════════════════════════════
 // METRIC REGISTRY DATA
@@ -76,7 +77,7 @@ const METRIC_REGISTRY = [
     name: "Net Revenue Retention (NRR)",
     category: "Customer Success",
     definition: "Revenue from existing customers in current period (including expansion, contraction, churn) divided by revenue from same cohort in prior period.",
-    formula: "(Revenue_Current_Cohort + Expansion - Contraction - Churn) / Revenue_Prior_Cohort × 100",
+    formula: NRR_FORMULA,
     source: "Billing System + Salesforce",
     owner: "Finance",
     refresh: "Monthly (5th business day)",

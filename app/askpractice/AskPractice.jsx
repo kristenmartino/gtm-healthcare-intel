@@ -1,58 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 
-// Synthetic practice data for a multi-provider dermatology group.
-// Seeded so the client-side insights match what the server sends to Claude.
-function seededRandom(seed) {
-  let s = seed;
-  return () => { s = (s * 16807 + 11) % 2147483647; return s / 2147483647; };
-}
-
-function generatePracticeData() {
-  // Providers intentionally use different surnames than the GTM sales reps so
-  // a careful reader doesn't conflate the two personas.
-  const providers = ["Dr. Anya Lin", "Dr. Priya Shah", "Dr. Maya Singh", "Dr. Devon Brooks", "Dr. Hana Yamamoto"];
-  const payers = ["Blue Cross", "Aetna", "UnitedHealth", "Medicare", "Cigna", "Self-Pay"];
-  const months = [];
-  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
-  const r = seededRandom(42);
-  const rand = (min, max) => Math.round((r() * (max - min) + min) * 100) / 100;
-
-  for (let m = 0; m < 12; m++) {
-    const monthData = { month: monthNames[m], year: 2025, providers: {} };
-    providers.forEach(p => {
-      const base = p.includes("Lin") ? 1.1 : p.includes("Shah") ? 0.95 : p.includes("Singh") ? 1.05 : p.includes("Brooks") ? 0.88 : 1.0;
-      const seasonal = 1 + 0.08 * Math.sin((m - 3) * Math.PI / 6);
-      monthData.providers[p] = {
-        patients: Math.round(rand(140, 210) * base * seasonal),
-        revenue: Math.round(rand(85000, 145000) * base * seasonal),
-        collections: Math.round(rand(78000, 135000) * base * seasonal),
-        denials: Math.round(rand(8, 28) * (2 - base)),
-        noShows: Math.round(rand(6, 18) / base),
-        avgReimb: Math.round(rand(245, 380) * base),
-        procedures: {
-          "Mohs Surgery": Math.round(rand(8, 22) * base),
-          "Biopsy": Math.round(rand(35, 65) * base * seasonal),
-          "Lesion Destruction": Math.round(rand(20, 45) * base),
-          "E&M Visit": Math.round(rand(80, 140) * base * seasonal),
-          "Cosmetic Consult": Math.round(rand(5, 18) * base),
-        },
-        payerMix: {}
-      };
-      let remaining = monthData.providers[p].revenue;
-      payers.forEach((pay, i) => {
-        const share = pay === "Medicare" ? rand(0.2, 0.3) : pay === "Blue Cross" ? rand(0.18, 0.25) : pay === "Self-Pay" ? rand(0.05, 0.1) : rand(0.08, 0.18);
-        const amt = i === payers.length - 1 ? remaining : Math.round(remaining * share);
-        monthData.providers[p].payerMix[pay] = Math.min(amt, remaining);
-        remaining -= monthData.providers[p].payerMix[pay];
-      });
-    });
-    months.push(monthData);
-  }
-  return { practiceName: "Advanced Dermatology Associates", providers, payers, months };
-}
-
-const PRACTICE_DATA = generatePracticeData();
+import { PRACTICE_DATA } from "../../lib/practice-scenario.mjs";
 
 function SmartInsights() {
   const d = PRACTICE_DATA;
@@ -84,7 +32,7 @@ function SmartInsights() {
   insights.push({ icon: "📈", title: "Revenue Trend", text: `Practice revenue ${Number(trend) > 0 ? "up" : "down"} ${Math.abs(trend)}% over the last quarter vs. prior quarter.` });
   insights.push({ icon: "🏆", title: "Top Producer", text: `${topRev[0].split(" ").pop()} leads in total revenue at $${(topRev[1].rev / 1000).toFixed(0)}K YTD.` });
   insights.push({ icon: "💰", title: "Best Collection Rate", text: `${topCollect[0].split(" ").pop()} has the highest collection rate at ${(topCollect[1].collections / topCollect[1].rev * 100).toFixed(1)}%.` });
-  insights.push({ icon: "⚠️", title: "Denial Alert", text: `${mostDenials[0].split(" ").pop()} has the most denials YTD (${mostDenials[1].denials}). Review payer-specific rejection patterns.` });
+  insights.push({ icon: "⚠️", title: "Denial Alert", text: `${mostDenials[0].split(" ").pop()} has the most denials YTD (${mostDenials[1].denials}). Payer-level denial counts and reasons are not included.` });
   
   return insights;
 }
@@ -150,7 +98,7 @@ export default function AskPractice() {
         setMessages(prev => [...prev, { role: "assistant", text: errMsg }]);
       } else {
         const reply = data.content?.map(c => c.text || "").join("\n") || "I wasn't able to process that query. Please try rephrasing.";
-        setMessages(prev => [...prev, { role: "assistant", text: reply }]);
+        setMessages(prev => [...prev, { role: "assistant", text: reply, source: data.source }]);
       }
     } catch (err) {
       setMessages(prev => [...prev, { role: "assistant", text: "The model service could not be reached. Please try again. The synthetic practice summary remains available." }]);
@@ -215,7 +163,7 @@ export default function AskPractice() {
                 border: m.role === "user" ? "none" : "1px solid #1e293b",
                 fontSize: 13, lineHeight: 1.65, whiteSpace: "pre-wrap"
               }}>
-                {m.role === "assistant" && <div style={{ fontSize: 10, fontWeight: 700, color: "#34d399", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>AskPractice AI</div>}
+                {m.role === "assistant" && <div style={{ fontSize: 10, fontWeight: 700, color: "#34d399", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>{m.source === "scenario-calculation" ? "Scenario calculation" : "Claude response"}</div>}
                 {m.text}
               </div>
             </div>
@@ -264,10 +212,10 @@ export default function AskPractice() {
             </summary>
             <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 8, lineHeight: 1.7, padding: "12px 14px", background: "#0b1120", borderRadius: 8, border: "1px solid #1e293b" }}>
               <p style={{ margin: "0 0 8px" }}>
-                <strong style={{ color: "#e2e8f0" }}>Grounding:</strong> Same pattern as <a href="/askgtm" style={{ color: "#10b981" }}>AskGTM</a> — the server-side system prompt holds a flattened text summary of the synthetic 12-month practice dataset (5 providers × 6 payers, monthly volumes, revenue, collections, denials, no-shows, procedure mix). Claude reasons over the summary directly. There is no live EHR connection or SQL execution. The model can make mistakes and is instructed to separate observations from hypotheses.
+                <strong style={{ color: "#e2e8f0" }}>Grounding:</strong> Same pattern as <a href="/askgtm" style={{ color: "#10b981" }}>AskGTM</a> — the server-side system prompt holds a flattened text summary of the synthetic 12-month practice dataset (5 providers × 6 payers, monthly volumes, revenue, collections, denials, no-shows, procedure mix). Denial counts are calculated from the shared scenario records, including provider and time filters. Other questions use Claude with precomputed denial totals in its summary. There is no live EHR connection or SQL execution. The model can make mistakes and is instructed to separate observations from hypotheses.
               </p>
               <p style={{ margin: "0 0 8px" }}>
-                <strong style={{ color: "#e2e8f0" }}>Scope:</strong> Aggregate practice performance only — provider productivity, denial trends by payer, collection rates, no-show patterns, payer-mix breakdowns. Questions that require patient-identifiable information ("show me patient John Smith's chart history", "pull up MRN 12345", "which patients are overdue for follow-up") fall outside scope, and the assistant is instructed in the system prompt to decline them.
+                <strong style={{ color: "#e2e8f0" }}>Scope:</strong> Aggregate practice performance only — provider productivity, denial counts by provider and period, collection rates, no-show patterns, payer-mix breakdowns. Questions that require patient-identifiable information ("show me patient John Smith's chart history", "pull up MRN 12345", "which patients are overdue for follow-up") fall outside scope, and the assistant is instructed in the system prompt to decline them.
               </p>
               <p style={{ margin: 0 }}>
                 <strong style={{ color: "#e2e8f0" }}>Limits:</strong> No patient records are present. The model is instructed to decline patient-level questions; this prompt behavior is not a privacy control or a compliance certification. Do not enter patient information. Questions are sent independently without previous chat turns. Denials are counts, and no claim denominator or denial reasons are supplied.

@@ -44,10 +44,31 @@ test('open opportunities contribute pipeline, not wins or win-rate denominators'
 test('the cycle explanation reports calculated gaps and respects reporting periods', () => {
   const answer = answerKnownGTMQuestion('Who has the longest average sales cycle in Q1 2025, and why?');
   assert.match(answer, /Kim has the longest mean sales cycle: 68 days across 2 won/);
-  assert.match(answer, /Patel is next at 58 days, a gap of 10 days/);
-  assert.match(answer, /team mean is 48.5 days across 31 wins/);
+  assert.match(answer, /Patel is next at 58.0 days, a gap of 10.0 days/);
+  assert.match(answer, /selected cohort mean is 48.5 days across 31 wins/);
   assert.match(answerKnownGTMQuestion('Who has the longest sales cycle in Q4 2024?'), /72 days across 3 won/);
   assert.match(answerKnownGTMQuestion('Who has the longest cycle in Q2 2025?'), /No data is available/);
-  assert.equal(answerKnownGTMQuestion('Who had the longest sales cycle last quarter?'), null);
+  assert.match(answerKnownGTMQuestion('Who had the longest sales cycle last quarter?'), /Q4 2024/);
   assert.equal(answerKnownGTMQuestion('What is our ARR?'), null);
+});
+
+test('cycle answers apply specialty, source, rep, and quarter filters before ranking', () => {
+  const dermatology = answerKnownGTMQuestion('Who has the longest average sales cycle for Dermatology in Q1 2025?');
+  assert.match(dermatology, /specialty: Dermatology: Patel.*58 days across 1 won opportunity/);
+  assert.match(dermatology, /selected cohort mean is 46.3 days across 11 wins/);
+  assert.doesNotMatch(dermatology, /Kim/);
+  assert.match(answerKnownGTMQuestion('Who has the longest sales cycle for Referral in Q1 2025?'), /Rivera.*52 days across 2 won/);
+  assert.match(answerKnownGTMQuestion('Who has the longest sales cycle for Dermatology and Kim in Q1 2025?'), /No won opportunities match/);
+  assert.match(answerKnownGTMQuestion('Who has the longest cycle for Dermatology in Q4 2024?'), /Kim.*72 days/);
+});
+
+test('cycle answers clarify unsupported scope rather than answering for the company', () => {
+  for (const question of [
+    'Who has the longest sales cycle for Cardiology in Q1 2025?',
+    'Who has the longest median cycle in Q1 2025?',
+    'Who has the longest cycle excluding Dermatology in Q1 2025?',
+    'Who has the longest cycle for deals over $100000 in Q1 2025?',
+    'Which specialty has the longest sales cycle in Q1 2025?',
+    'Who has the longest cycle in Q1 2025 compared to Q4 2024?',
+  ]) assert.match(answerKnownGTMQuestion(question), /Please specify/);
 });

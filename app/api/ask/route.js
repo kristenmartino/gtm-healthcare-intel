@@ -3,64 +3,13 @@ import Anthropic from "@anthropic-ai/sdk";
 import { checkRateLimit } from "../../../lib/rate-limit";
 import { EVIDENCE_RULES } from "../../../lib/assistant-grounding.mjs";
 
+import { PRACTICE_DATA, practiceDenialSummary } from "../../../lib/practice-scenario.mjs";
+import { answerPracticeDenials } from "../../../lib/practice-answers.mjs";
+
 const anthropic = new Anthropic();
 
-// ═══════════════════════════════════════════════════════════════
-// PRACTICE DATA — Server-side only. Never accepted from the client.
-// In production this would be a warehouse query scoped to the
-// authenticated practice and reporting period.
-// ═══════════════════════════════════════════════════════════════
-
-function seededRandom(seed) {
-  let s = seed;
-  return () => { s = (s * 16807 + 11) % 2147483647; return s / 2147483647; };
-}
-
-function generatePracticeData() {
-  const r = seededRandom(42);
-  const rand = (min, max) => Math.round((r() * (max - min) + min) * 100) / 100;
-
-  // Providers intentionally use different surnames than the GTM sales reps so
-  // a careful reader doesn't conflate the two personas.
-  const providers = ["Dr. Anya Lin", "Dr. Priya Shah", "Dr. Maya Singh", "Dr. Devon Brooks", "Dr. Hana Yamamoto"];
-  const payers = ["Blue Cross", "Aetna", "UnitedHealth", "Medicare", "Cigna", "Self-Pay"];
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const months = [];
-
-  for (let m = 0; m < 12; m++) {
-    const monthData = { month: monthNames[m], year: 2025, providers: {} };
-    providers.forEach((p) => {
-      const base = p.includes("Lin") ? 1.1 : p.includes("Shah") ? 0.95 : p.includes("Singh") ? 1.05 : p.includes("Brooks") ? 0.88 : 1.0;
-      const seasonal = 1 + 0.08 * Math.sin((m - 3) * Math.PI / 6);
-      monthData.providers[p] = {
-        patients: Math.round(rand(140, 210) * base * seasonal),
-        revenue: Math.round(rand(85000, 145000) * base * seasonal),
-        collections: Math.round(rand(78000, 135000) * base * seasonal),
-        denials: Math.round(rand(8, 28) * (2 - base)),
-        noShows: Math.round(rand(6, 18) / base),
-        avgReimb: Math.round(rand(245, 380) * base),
-        procedures: {
-          "Mohs Surgery": Math.round(rand(8, 22) * base),
-          "Biopsy": Math.round(rand(35, 65) * base * seasonal),
-          "Lesion Destruction": Math.round(rand(20, 45) * base),
-          "E&M Visit": Math.round(rand(80, 140) * base * seasonal),
-          "Cosmetic Consult": Math.round(rand(5, 18) * base),
-        },
-        payerMix: {},
-      };
-      let remaining = monthData.providers[p].revenue;
-      payers.forEach((pay, i) => {
-        const share = pay === "Medicare" ? rand(0.2, 0.3) : pay === "Blue Cross" ? rand(0.18, 0.25) : pay === "Self-Pay" ? rand(0.05, 0.1) : rand(0.08, 0.18);
-        const amt = i === payers.length - 1 ? remaining : Math.round(remaining * share);
-        monthData.providers[p].payerMix[pay] = Math.min(amt, remaining);
-        remaining -= monthData.providers[p].payerMix[pay];
-      });
-    });
-    months.push(monthData);
-  }
-
-  return { practiceName: "Advanced Dermatology Associates", providers, payers, months };
-}
+// The public synthetic scenario is shared with the page. Only credentials and
+// model instructions are server-side; the client supplies the question alone.
 
 function buildDataSummary(d) {
   const lines = [
@@ -69,6 +18,8 @@ function buildDataSummary(d) {
     `Payers: ${d.payers.join(", ")}`,
     `Period: Jan 2025 - Dec 2025`,
     ``,
+    `PRECOMPUTED DENIAL COUNTS (use these values instead of mental arithmetic):`,
+    JSON.stringify(practiceDenialSummary()),
     `Monthly Performance Data:`,
   ];
 
@@ -83,7 +34,6 @@ function buildDataSummary(d) {
   return lines.join("\n");
 }
 
-const PRACTICE_DATA = generatePracticeData();
 const DATA_SUMMARY = buildDataSummary(PRACTICE_DATA);
 
 const SYSTEM_PROMPT = `You are a healthcare practice analytics assistant for "${PRACTICE_DATA.practiceName}", a multi-provider dermatology practice. You answer questions about practice performance using the data provided. Be concise, specific, and use exact numbers. Format currency with $ and commas. When comparing providers, use their last names only. If asked to "show" data, describe the key numbers clearly. ${EVIDENCE_RULES}
@@ -117,6 +67,9 @@ export async function POST(request) {
     if (question.length > 2000) {
       return NextResponse.json({ error: "Question exceeds 2000-character limit" }, { status: 400 });
     }
+
+    const calculated = answerPracticeDenials(question);
+    if (calculated) return NextResponse.json({ content: [{ type: "text", text: calculated }], source: "scenario-calculation" });
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
