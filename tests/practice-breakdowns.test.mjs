@@ -27,7 +27,7 @@ test('the capability matrix validates every measure and breakdown against the ac
 test('unsupported procedure breakdowns refuse generic, coordinated, named, and compound forms', () => {
   for (const [key,label] of Object.entries(measures)) {
     if (key==='procedures') continue;
-    for (const suffix of ['by procedure','per procedure','for each procedure','across all procedure types','by provider and procedure','by procedure and provider']) {
+    for (const suffix of ['by procedure','per procedure','for each procedure','for procedures','for a procedure','across all procedure types','by provider and procedure','by procedure and provider']) {
       rejectsWithoutTotals(`Show ${label} ${suffix} in 2025.`);
     }
     rejectsWithoutTotals(`Show procedure-specific ${label} in 2025.`);
@@ -38,7 +38,7 @@ test('unsupported procedure breakdowns refuse generic, coordinated, named, and c
 test('unsupported payer and joint payer/procedure breakdowns never substitute independent totals', () => {
   for (const [key,label] of Object.entries(measures)) {
     if (['revenue','payerMix'].includes(key)) continue;
-    for (const suffix of ['by payer','per payer','for each payer','by provider and payer']) rejectsWithoutTotals(`Show ${label} ${suffix} in 2025.`);
+    for (const suffix of ['by payer','per payer','for each payer','for payers','by provider and payer']) rejectsWithoutTotals(`Show ${label} ${suffix} in 2025.`);
     rejectsWithoutTotals(`Show payer-specific ${label} in 2025.`);
   }
   for (const q of ['Show collections for Medicare.','Show payer collections in 2025.','Show revenue by payer and procedure.','Show revenue by procedure and payer.','Show payer mix by procedure.','Show procedure counts for Aetna.','Show payer revenue for Biopsy.']) rejectsWithoutTotals(q);
