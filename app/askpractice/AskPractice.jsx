@@ -29,27 +29,27 @@ function SmartInsights() {
   const prevRev = prev3.reduce((a, m) => a + Object.values(m.providers).reduce((b, p) => b + p.revenue, 0), 0);
   const trend = ((recentRev - prevRev) / prevRev * 100).toFixed(1);
   
-  insights.push({ icon: "📈", title: "Revenue Trend", text: `Practice revenue ${Number(trend) > 0 ? "up" : "down"} ${Math.abs(trend)}% over the last quarter vs. prior quarter.` });
-  insights.push({ icon: "🏆", title: "Top Producer", text: `${topRev[0].split(" ").pop()} leads in total revenue at $${(topRev[1].rev / 1000).toFixed(0)}K YTD.` });
-  insights.push({ icon: "💰", title: "Best Collection Rate", text: `${topCollect[0].split(" ").pop()} has the highest collection rate at ${(topCollect[1].collections / topCollect[1].rev * 100).toFixed(1)}%.` });
-  insights.push({ icon: "⚠️", title: "Denial Alert", text: `${mostDenials[0].split(" ").pop()} has the most denials YTD (${mostDenials[1].denials}). Payer-level denial counts and reasons are not included.` });
+  insights.push({ icon: "📈", title: "Revenue Trend · Q4 vs Q3 2025", text: `Practice revenue ${Number(trend) > 0 ? "up" : "down"} ${Math.abs(trend)}% in Oct–Dec compared with Jul–Sep 2025.` });
+  insights.push({ icon: "🏆", title: "Top Producer · Jan–Dec 2025", text: `${topRev[0].split(" ").pop()} leads in total revenue at $${topRev[1].rev.toLocaleString('en-US')} for 2025.` });
+  insights.push({ icon: "💰", title: "Collection / Revenue · Jan–Dec 2025", text: `${topCollect[0].split(" ").pop()} has the highest collections-to-revenue ratio at ${(topCollect[1].collections / topCollect[1].rev * 100).toFixed(1)}%.` });
+  insights.push({ icon: "⚠️", title: "Denial Counts · Jan–Dec 2025", text: `${mostDenials[0].split(" ").pop()} has the most denials in 2025 (${mostDenials[1].denials}). Payer-level denial counts and reasons are not included.` });
   
   return insights;
 }
 
 function MiniBar({ data, labels, color, height = 60, width = 200 }) {
   const max = Math.max(...data);
-  const barW = width / data.length - 3;
+  const slot = width / data.length;
   return (
     <div>
-      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", maxWidth: width, height }}>
+      <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" style={{ display: "block", width: "100%", height }}>
         {data.map((v, i) => (
-          <rect key={i} x={i * (barW + 3)} y={height - (v / max) * (height - 8)} width={barW} height={(v / max) * (height - 8)} rx={2} fill={color} opacity={0.6 + (i / data.length) * 0.4} />
+          <rect key={i} x={(i + 0.1) * slot} y={height - (v / max) * (height - 8)} width={slot * 0.8} height={(v / max) * (height - 8)} rx={2} fill={color} opacity={0.6 + (i / data.length) * 0.4} />
         ))}
       </svg>
       {labels && (
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "#475569", marginTop: 2 }}>
-          {labels.map(l => <span key={l}>{l}</span>)}
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${data.length}, minmax(0, 1fr))`, fontSize: 9, color: "#475569", marginTop: 2 }}>
+          {labels.map((l,i) => <span key={i} style={{ textAlign: "center" }}>{l}</span>)}
         </div>
       )}
     </div>
@@ -136,7 +136,7 @@ export default function AskPractice() {
         {/* Smart Insights (shown initially) */}
         {showInsights && (
           <div style={{ padding: "20px 0" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#34d399", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Smart Summary — Current Month</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#34d399", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Practice Summary — Jan–Dec 2025</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
               {insights.map((ins, i) => (
                 <div key={i} style={{ background: "#111b2e", borderRadius: 10, padding: 14, border: "1px solid #1e293b" }}>
@@ -147,7 +147,7 @@ export default function AskPractice() {
             </div>
             <div style={{ background: "#111b2e", borderRadius: 10, padding: 14, border: "1px solid #1e293b" }}>
               <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#475569", marginBottom: 6 }}>Practice Revenue — 12 Month Trend</div>
-              <MiniBar data={monthlyRev} labels={["Jan","","","Apr","","","Jul","","","Oct","","Dec"]} color="#10b981" height={50} width={400} />
+              <MiniBar data={monthlyRev} labels={monthLabels} color="#10b981" height={50} width={400} />
             </div>
           </div>
         )}
@@ -212,7 +212,7 @@ export default function AskPractice() {
             </summary>
             <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 8, lineHeight: 1.7, padding: "12px 14px", background: "#0b1120", borderRadius: 8, border: "1px solid #1e293b" }}>
               <p style={{ margin: "0 0 8px" }}>
-                <strong style={{ color: "#e2e8f0" }}>Grounding:</strong> Same pattern as <a href="/askgtm" style={{ color: "#10b981" }}>AskGTM</a> — the server-side system prompt holds a flattened text summary of the synthetic 12-month practice dataset (5 providers × 6 payers, monthly volumes, revenue, collections, denials, no-shows, procedure mix). Denial counts are calculated from the shared scenario records, including provider and time filters. Other questions use Claude with precomputed denial totals in its summary. There is no live EHR connection or SQL execution. The model can make mistakes and is instructed to separate observations from hypotheses.
+                <strong style={{ color: "#e2e8f0" }}>Grounding:</strong> Same pattern as <a href="/askgtm" style={{ color: "#10b981" }}>AskGTM</a> — the server-side system prompt holds a flattened text summary of the synthetic 12-month practice dataset (5 providers × 6 payers, monthly volumes, revenue, collections, denials, no-shows, procedure mix). Revenue totals and denial counts are calculated from the shared scenario records, including provider and time filters. Revenue requests support inclusive month ranges and relative periods ending in Dec 2025; unsupported calculations ask for clarification. Other questions use Claude with precomputed denial totals in its summary. There is no live EHR connection or SQL execution. The model can make mistakes and is instructed to separate observations from hypotheses.
               </p>
               <p style={{ margin: "0 0 8px" }}>
                 <strong style={{ color: "#e2e8f0" }}>Scope:</strong> Aggregate practice performance only — provider productivity, denial counts by provider and period, collection rates, no-show patterns, payer-mix breakdowns. Questions that require patient-identifiable information ("show me patient John Smith's chart history", "pull up MRN 12345", "which patients are overdue for follow-up") fall outside scope, and the assistant is instructed in the system prompt to decline them.
