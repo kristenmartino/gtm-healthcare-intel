@@ -155,7 +155,7 @@ export default function PracticeFlow() {
     { label: "Commercial payer mix", days: commercialContrib, color: "#0d9488", desc: `${payerCommercial}% of revenue at ~${COMMERCIAL_DAYS}-day clean-claim cycle` },
     { label: "Gov (Medicare/Medicaid)", days: govContrib, color: "#2563eb", desc: `${payerGov}% at ~${GOV_DAYS}-day FFS cycle` },
     { label: "Patient-pay aging", days: patientContrib, color: "#d97706", desc: `${payerPatient.toFixed(0)}% at ~${PATIENT_DAYS}-day self-pay aging` },
-    { label: "Denial cycle drag", days: denialDrag, color: "#dc2626", desc: `${myDenial.toFixed(1)}% denial × ${resubCycle}d resubmission` },
+    { label: "Denial cycle drag", days: denialDrag, color: "#dc2626", desc: `${myDenial.toFixed(1)}% denial × (${resubCycle}d resubmission + ${COMMERCIAL_DAYS}d payment cycle)` },
     ...(processDrag >= 0.5 ? [{ label: "Unexplained difference", days: processDrag, color: "#94a3b8", desc: "Residual, not an identified operational cause" }] : []),
   ];
   const totalSegDays = segments.reduce((a, s) => a + s.days, 0);
