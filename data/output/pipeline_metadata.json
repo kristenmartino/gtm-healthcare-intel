@@ -59,5 +59,10 @@
     "rows": 90,
     "metros": 18,
     "specialties": 5
-  }
+  },
+  "source_execution": {
+    "providers": "synthetic",
+    "demographics": "embedded_reference"
+  },
+  "source_catalog_note": "URLs document intended source families. The checked-in snapshot matches the default synthetic provider and embedded-reference run; no live ingestion is claimed."
 }

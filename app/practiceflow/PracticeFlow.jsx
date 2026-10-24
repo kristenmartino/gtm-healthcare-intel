@@ -15,7 +15,7 @@ function generateBenchmarks(specialty, size) {
     practices.push({
       daysInAR: Math.round((base.dar * sizeAdj + (r() - 0.5) * 20) * 10) / 10,
       denialRate: Math.round((base.denial * sizeAdj + (r() - 0.5) * 4) * 10) / 10,
-      collectRate: Math.round((base.collect / sizeAdj + (r() - 0.5) * 6) * 10) / 10,
+      collectRate: Math.min(100, Math.max(0, Math.round((base.collect + (1 - sizeAdj) * 10 + (r() - 0.5) * 6) * 10) / 10)),
       avgReimb: Math.round(base.cpt * (0.85 + r() * 0.3)),
       noShowRate: Math.round((base.noShow + (r() - 0.5) * 6) * 10) / 10,
     });
@@ -44,9 +44,9 @@ function DistributionChart({ data, value, unit, label, lowerIsBetter }) {
           <div style={{ fontSize: 28, fontWeight: 800, color: "var(--fg)", marginTop: 4 }}>{value}{unit}</div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>Your Percentile</div>
+          <div style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>Performance percentile</div>
           <div style={{ fontSize: 22, fontWeight: 800, color: pct >= 75 ? "#10b981" : pct >= 50 ? "#f59e0b" : "#ef4444" }}>
-            {lowerIsBetter ? Math.round(100 - pct) : Math.round(pct)}th
+            {Math.round(pct)}th
           </div>
         </div>
       </div>
@@ -71,7 +71,7 @@ function Sparkline({ data, color, height = 32, width = 120 }) {
   const range = max - min || 1;
   const pts = data.map((v, i) => `${(i / (data.length - 1)) * width},${height - ((v - min) / range) * (height - 4) - 2}`).join(" ");
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} style={{ width, height }}>
+    <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", maxWidth: width, height }}>
       <polyline points={pts} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
@@ -106,7 +106,7 @@ export default function PracticeFlow() {
   const trendDenial = [6.8,6.5,6.2,6.0,5.9,5.8,5.7,5.9,5.8,5.6,5.9,myDenial];
 
   // ─── Days-in-A/R Diagnostic Decomposition ────────────────────────────────
-  // Industry-standard days-to-payment by payer type (MGMA + HFMA published medians).
+  // Illustrative days-to-payment assumptions, not sourced benchmark estimates.
   // These are anchors, not absolutes — calibrate to internal billing data in production.
   const COMMERCIAL_DAYS = 25;
   const GOV_DAYS = 32;       // Medicare + Medicaid clean claims
@@ -131,22 +131,22 @@ export default function PracticeFlow() {
     {
       name: "Cut denial-resubmission cycle",
       impact: (myDenial / 100) * Math.max(0, resubCycle - 7),
-      action: `${resubCycle}d → 7d resubmission (best-practice time-to-resubmit)`,
+      action: `${resubCycle}d → 7d resubmission (assumed scenario target)`,
     },
     {
       name: "Reduce first-pass denial rate",
       impact: Math.max(0, myDenial - 4) / 100 * (resubCycle + COMMERCIAL_DAYS),
-      action: `${myDenial.toFixed(1)}% → 4% (50th-percentile target via front-end eligibility + payer-rules check)`,
+      action: `${myDenial.toFixed(1)}% → 4% (assumed scenario target, not a peer median)`,
     },
     {
       name: "Patient-pay collection program",
       impact: payerPatient > 10 ? ((payerPatient - 8) / 100) * (PATIENT_DAYS - COMMERCIAL_DAYS) : 0,
-      action: `${payerPatient.toFixed(0)}% → 8% patient AR via point-of-service collection + financing options`,
+      action: `${payerPatient.toFixed(0)}% → 8% assumed patient-pay share; no collection outcome is established`,
     },
     {
-      name: "Tighten back-office process drag",
+      name: "Reduce the unexplained difference (scenario)",
       impact: processDrag * 0.6,
-      action: `${processDrag.toFixed(1)}d unexplained → same-day posting, automated eligibility, weekly aged-AR review`,
+      action: `${processDrag.toFixed(1)}d unexplained → assume a 60% smaller residual; investigate actual causes first`,
     },
   ].filter(l => l.impact >= 0.5).sort((a, b) => b.impact - a.impact);
   const topLever = levers[0];
@@ -156,12 +156,12 @@ export default function PracticeFlow() {
     { label: "Gov (Medicare/Medicaid)", days: govContrib, color: "#2563eb", desc: `${payerGov}% at ~${GOV_DAYS}-day FFS cycle` },
     { label: "Patient-pay aging", days: patientContrib, color: "#d97706", desc: `${payerPatient.toFixed(0)}% at ~${PATIENT_DAYS}-day self-pay aging` },
     { label: "Denial cycle drag", days: denialDrag, color: "#dc2626", desc: `${myDenial.toFixed(1)}% denial × ${resubCycle}d resubmission` },
-    ...(processDrag >= 0.5 ? [{ label: "Unexplained process drag", days: processDrag, color: "#94a3b8", desc: "Eligibility, posting, follow-up cadence" }] : []),
+    ...(processDrag >= 0.5 ? [{ label: "Unexplained difference", days: processDrag, color: "#94a3b8", desc: "Residual, not an identified operational cause" }] : []),
   ];
   const totalSegDays = segments.reduce((a, s) => a + s.days, 0);
 
   return (
-    <div style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", ["--bg"]: "#f8fafc", ["--fg"]: "#0f172a", ["--card"]: "#ffffff", ["--border"]: "#e2e8f0", ["--muted"]: "#64748b", ["--accent"]: "#0d9488", background: "var(--bg)", color: "var(--fg)", minHeight: "100vh", padding: 0 }}>
+    <div className="demo-light-page" style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", ["--bg"]: "#f8fafc", ["--fg"]: "#0f172a", ["--card"]: "#ffffff", ["--border"]: "#e2e8f0", ["--muted"]: "#64748b", ["--accent"]: "#0d9488", background: "var(--bg)", color: "var(--fg)", minHeight: "100vh", padding: 0 }}>
       
       {/* Header */}
       <div style={{ background: "#0f172a", padding: "32px 32px 28px" }}>
@@ -172,11 +172,11 @@ export default function PracticeFlow() {
             ← Portfolio
           </a>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg, #0d9488, #14b8a6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: "#fff" }}>P</div>
+
             <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#5eead4" }}>PracticeFlow</span>
           </div>
           <h1 style={{ fontSize: 26, fontWeight: 800, color: "#f1f5f9", margin: "8px 0 4px", letterSpacing: "-0.01em" }}>Revenue Cycle Benchmarking</h1>
-          <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>Compare your practice KPIs against {benchmarks.length} synthetic peer cohort practices · Modeled on MGMA & HFMA published benchmarks</p>
+          <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>Compare your practice KPIs against {benchmarks.length} synthetic peer cohort practices · Illustrative assumptions; not an industry benchmark</p>
         </div>
       </div>
 
@@ -228,7 +228,7 @@ export default function PracticeFlow() {
           <DistributionChart data={denialData} value={myDenial} unit="%" label="Denial Rate" lowerIsBetter={true} />
           <DistributionChart data={collectData} value={myCollect} unit="%" label="Collection Rate" lowerIsBetter={false} />
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(280px, 100%), 1fr))", gap: 16, marginBottom: 24 }}>
           <DistributionChart data={reimbData} value={myReimb} unit="" label="Avg Reimbursement ($)" lowerIsBetter={false} />
           <DistributionChart data={noShowData} value={myNoShow} unit="%" label="No-Show Rate" lowerIsBetter={true} />
         </div>
@@ -275,7 +275,7 @@ export default function PracticeFlow() {
         </div>
 
         {/* Trend section */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(280px, 100%), 1fr))", gap: 16 }}>
           <div style={{ background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)", padding: 20 }}>
             <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--muted)", marginBottom: 8 }}>Days in A/R — 12-Month Trend</div>
             <Sparkline data={trendDar} color="#0d9488" height={48} width={320} />
@@ -295,18 +295,18 @@ export default function PracticeFlow() {
         <div style={{ marginTop: 24, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)", padding: 24 }}>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 4 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              Diagnostic Drill — What's Driving Your Days in A/R
+              Days in A/R sensitivity exercise
             </div>
             <div style={{ fontSize: 11, color: "var(--muted)" }}>
-              Your A/R: <strong style={{ color: "var(--fg)" }}>{myDar} days</strong> · Predicted from drivers: <strong style={{ color: "var(--fg)" }}>{predictedDar.toFixed(1)} days</strong>
+              Your A/R: <strong style={{ color: "var(--fg)" }}>{myDar} days</strong> · Calculated under assumptions: <strong style={{ color: "var(--fg)" }}>{predictedDar.toFixed(1)} days</strong>
             </div>
           </div>
           <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.65, margin: "6px 0 18px" }}>
-            Days in A/R is a downstream metric — the sum of four upstream drivers. Knowing you're at the {Math.round(100 - (darData.filter(d => d <= myDar).length / darData.length * 100))}th percentile is the easy diagnosis; identifying which lever to pull is the consultative one. Adjust your payer mix and denial-resubmission cycle below to see how the components decompose.
+            Adjust payer mix and resubmission time to inspect a simplified arithmetic model. The assumed payment cycles and denial effect are illustrative; a difference from observed days in A/R does not identify its cause. Validate against claim-level payment dates before choosing an intervention.
           </p>
 
           {/* Driver inputs */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(220px, 100%), 1fr))", gap: 16, marginBottom: 20 }}>
             <div>
               <div style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", marginBottom: 4 }}>Commercial Payer Mix</div>
               <input type="range" min={0} max={100} step={1} value={payerCommercial}
@@ -329,13 +329,13 @@ export default function PracticeFlow() {
                 onChange={e => setResubCycle(Number(e.target.value))}
                 style={{ width: "100%", accentColor: "#0d9488" }} />
               <div style={{ fontSize: 15, fontWeight: 800 }}>{resubCycle}d</div>
-              <div style={{ fontSize: 10, color: "var(--muted)" }}>Industry best-practice: 7d</div>
+              <div style={{ fontSize: 10, color: "var(--muted)" }}>Scenario target: 7d</div>
             </div>
           </div>
 
           {/* Stacked decomposition bar */}
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Where Your A/R Days Come From</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Components under the selected assumptions</div>
             <div style={{ display: "flex", height: 36, borderRadius: 6, overflow: "hidden", border: "1px solid var(--border)" }}>
               {segments.map((s, i) => (
                 <div key={i} title={`${s.label}: ${s.days.toFixed(1)} days — ${s.desc}`}
@@ -360,17 +360,17 @@ export default function PracticeFlow() {
           {topLever && (
             <div style={{ background: "#f0fdfa", borderLeft: "4px solid #0d9488", padding: "14px 18px", borderRadius: "0 8px 8px 0" }}>
               <div style={{ fontSize: 11, fontWeight: 800, color: "#0d9488", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
-                Highest-Leverage Intervention
+                Largest modeled single change
               </div>
               <div style={{ fontSize: 14, fontWeight: 700, color: "var(--fg)", marginBottom: 4 }}>
-                {topLever.name} <span style={{ color: "#0d9488" }}>(~{topLever.impact.toFixed(1)}d recovery)</span>
+                {topLever.name} <span style={{ color: "#0d9488" }}>(~{topLever.impact.toFixed(1)}d modeled change)</span>
               </div>
               <p style={{ fontSize: 12.5, color: "var(--muted)", margin: "0 0 8px", lineHeight: 1.6 }}>
                 {topLever.action}.
               </p>
               {levers.length > 1 && (
                 <div style={{ fontSize: 11, color: "var(--muted)", borderTop: "1px solid #ccfbf1", paddingTop: 8, marginTop: 6 }}>
-                  <strong style={{ color: "var(--fg)" }}>Other levers in order:</strong>{" "}
+                  <strong style={{ color: "var(--fg)" }}>Other independent scenarios (do not sum):</strong>{" "}
                   {levers.slice(1).map((l, i) => (
                     <span key={i}>{i > 0 && " · "}{l.name} (~{l.impact.toFixed(1)}d)</span>
                   ))}
@@ -382,7 +382,7 @@ export default function PracticeFlow() {
 
         <div style={{ marginTop: 24, padding: 16, background: "var(--card)", borderRadius: 10, border: "1px solid var(--border)" }}>
           <p style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.6, margin: 0 }}>
-            <strong>Data Note:</strong> Benchmarks generated from synthetic practice data modeled on published MGMA, HFMA, and CMS cost report distributions for {specialty} practices of size {size}. Not sourced from real practice data. Adjust "Your Practice Metrics" sliders to see where a practice would rank against the peer cohort. Diagnostic Drill anchors (commercial 25d / gov 32d / patient 65d / resubmission 7d best-practice) are published industry medians; production deployments would calibrate these against the practice's own billing system.
+            <strong>Data Note:</strong> The {specialty} cohort for practice size {size} is generated from hand-set assumptions. No MGMA, HFMA, or practice-level source dataset is connected or validated here. Adjust "Your Practice Metrics" sliders to see where a practice would rank against the peer cohort. Sensitivity inputs (commercial 25d, government 32d, patient 65d, resubmission target 7d) are hand-set assumptions. Single-change effects overlap and must not be summed as expected recoveries.
           </p>
         </div>
       </div>

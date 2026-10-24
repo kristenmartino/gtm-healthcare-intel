@@ -48,7 +48,7 @@ SPECIALTY_TAXONOMY = {
     "Urology": ["208800000X", "2088P0231X"],
 }
 
-# National benchmarks: providers per 100K population (derived from CMS NPPES totals / Census)
+# Illustrative reference densities per 100K population; not validated benchmarks.
 NATIONAL_BENCHMARKS = {
     "Dermatology": 12.8,
     "Orthopedics": 16.2,
@@ -73,7 +73,7 @@ def load_nppes_data(nppes_path: str = None) -> pd.DataFrame:
     Load and filter CMS NPPES data for target specialties.
     
     If nppes_path is provided, reads from local file.
-    Otherwise, uses DuckDB to query a sample directly.
+    Otherwise, generates an explicitly synthetic demonstration sample.
     
     The full NPPES file is ~8GB CSV. For local development,
     download from: https://download.cms.gov/nppes/NPI_Files.html
@@ -90,8 +90,7 @@ def load_nppes_data(nppes_path: str = None) -> pd.DataFrame:
             code_to_specialty[code] = specialty
     
     if nppes_path and os.path.exists(nppes_path) and HAS_DUCKDB:
-        # Production path: query the full NPPES file with DuckDB
-        # DuckDB can read 8GB CSV in ~30 seconds without loading into memory
+        # Optional local-file path: query primary taxonomy using DuckDB.
         con = duckdb.connect()
         
         query = f"""
@@ -102,14 +101,14 @@ def load_nppes_data(nppes_path: str = None) -> pd.DataFrame:
             "Provider Business Practice Location Address Postal Code" AS zip_code,
             "Healthcare Provider Taxonomy Code_1" AS taxonomy_code,
             "Entity Type Code" AS entity_type
-        FROM read_csv_auto('{nppes_path}')
+        FROM read_csv_auto(?)
         WHERE "Entity Type Code" = '1'  -- Individual providers only
             AND "Healthcare Provider Taxonomy Code_1" IN ({','.join(f"'{c}'" for c in all_codes)})
             AND "Provider Business Practice Location Address State Name" IS NOT NULL
-            AND "Is Sole Proprietor" != 'Y'  -- Filter out retired/inactive
+            AND COALESCE(CAST("NPI Deactivation Date" AS VARCHAR), '') = ''
         """
         
-        df = con.execute(query).fetchdf()
+        df = con.execute(query, [nppes_path]).fetchdf()
         con.close()
     else:
         # Development path: generate realistic synthetic data
@@ -270,7 +269,7 @@ def score_metros(df: pd.DataFrame) -> pd.DataFrame:
 
 # ─── Step 5: Export Results ──────────────────────────────────────────────────
 
-def export_results(scored: pd.DataFrame):
+def export_results(scored: pd.DataFrame, source_execution=None):
     """Write scored results and pipeline metadata."""
     print("Step 5: Exporting results...")
 
@@ -287,6 +286,8 @@ def export_results(scored: pd.DataFrame):
         "pipeline": "spectrumiq_data_pipeline",
         "version": "1.0.0",
         "run_timestamp": datetime.now().isoformat(),
+        "source_execution": source_execution or {"providers": "unspecified", "demographics": "unspecified"},
+        "source_catalog_note": "URLs below document intended sources; source_execution records what this run actually used.",
         "data_sources": {
             "nppes": {
                 "url": "https://download.cms.gov/nppes/NPI_Files.html",
@@ -332,9 +333,8 @@ def export_results(scored: pd.DataFrame):
 
 def _get_metro_reference_data() -> pd.DataFrame:
     """
-    Metro reference data derived from Census Bureau CBSA estimates.
-    Growth rates from 2020-2024 annual estimates.
-    Medicare % from CMS enrollment data.
+    Embedded demonstration reference values. CMS/Census URLs document the
+    intended source families, but these values lack an audited extract lineage.
     """
     data = [
         {"metro": "Miami-Fort Lauderdale, FL", "primary_state": "FL", "population": 6138000, "growth_rate": 2.8, "medicare_pct": 22.1, "median_income": 62000, "zip_prefixes": "330,331,332,333"},
@@ -361,7 +361,7 @@ def _get_metro_reference_data() -> pd.DataFrame:
 
 def _generate_synthetic_nppes() -> pd.DataFrame:
     """
-    Generate synthetic provider data modeled on real NPPES distributions.
+    Generate illustrative synthetic provider data, not a verified NPPES sample.
     Provider counts by metro and specialty are calibrated to published
     CMS NPPES specialty counts and Census metro populations.
     """
@@ -462,7 +462,10 @@ def main():
     else:
         print(f"  ✓ All checks passed ({len(scored)} rows, {scored['metro'].nunique()} metros, {scored['specialty'].nunique()} specialties)")
     
-    export_results(scored)
+    export_results(scored, {
+        "providers": "local_nppes_file" if nppes_path and os.path.exists(nppes_path) and HAS_DUCKDB else "synthetic",
+        "demographics": "local_census_file" if census_path and os.path.exists(census_path) else "embedded_reference",
+    })
     
     # Summary
     print()

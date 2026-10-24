@@ -1,4 +1,5 @@
 "use client";
+import modelMetrics from "../../data/output/model_metrics.json";
 import { useState, useMemo } from "react";
 
 function seededRandom(seed) { let s = seed; return () => { s = (s * 16807 + 0) % 2147483647; return s / 2147483647; }; }
@@ -51,7 +52,7 @@ function FunnelBar({ label, count, total, prevCount, value, color, maxWidth }) {
       <div style={{ width: 100, fontSize: 12, fontWeight: 600, textAlign: "right", color: "#94a3b8" }}>{label}</div>
       <div style={{ flex: 1, position: "relative", height: 36 }}>
         <div style={{ position: "absolute", left: 0, top: 0, width: `${(w / maxWidth) * 100}%`, height: "100%", background: color, borderRadius: 6, transition: "width 0.5s cubic-bezier(0.22,1,0.36,1)", minWidth: count > 0 ? 4 : 0 }} />
-        <div style={{ position: "absolute", left: `${(w / maxWidth) * 100 + 1}%`, top: "50%", transform: "translateY(-50%)", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap", color: "#e2e8f0" }}>
+        <div style={{ position: "absolute", left: `${Math.max(2, Math.min(75, (w / maxWidth) * 100 - 18))}%`, top: "50%", transform: "translateY(-50%)", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap", color: "#e2e8f0" }}>
           {count} <span style={{ fontSize: 11, color: "#64748b", fontWeight: 500 }}>({pct.toFixed(1)}%)</span>
         </div>
       </div>
@@ -125,7 +126,7 @@ export default function ConvertPath({ initialDealScores = [] }) {
   const colors = ["#38bdf8", "#22d3ee", "#2dd4bf", "#34d399", "#a3e635", "#fbbf24"];
 
   return (
-    <div style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", background: "#0b1120", color: "#e2e8f0", minHeight: "100vh" }}>
+    <div className="demo-page" style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", background: "#0b1120", color: "#e2e8f0", minHeight: "100vh" }}>
       <div style={{ padding: "28px 32px 0", maxWidth: 1100, margin: "0 auto" }}>
         <a href="/" style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 12 }}
            onMouseEnter={e => e.currentTarget.style.color = "#94a3b8"}
@@ -133,11 +134,11 @@ export default function ConvertPath({ initialDealScores = [] }) {
           ← Portfolio
         </a>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: "#fff" }}>C</div>
+
           <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#a78bfa" }}>ConvertPath</span>
         </div>
-        <h1 style={{ fontSize: 26, fontWeight: 800, margin: "8px 0 4px", letterSpacing: "-0.01em" }}>GTM Sales Funnel & Cohort Analyzer</h1>
-        <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 20px" }}>Synthetic healthcare SaaS pipeline · {ALL_DEALS.length} deals · Stage conversion, velocity, and leaky bucket diagnostics</p>
+        <h1 style={{ fontSize: 26, fontWeight: 800, margin: "8px 0 4px", letterSpacing: "-0.01em" }}>Pipeline conversion and deal scoring</h1>
+        <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 20px" }}>Separate synthetic funnel simulation · {ALL_DEALS.length} leads · Deal Health uses a separate 45-opportunity scoring sample</p>
 
         {/* Filters */}
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
@@ -156,7 +157,7 @@ export default function ConvertPath({ initialDealScores = [] }) {
         </div>
 
         {/* Tabs */}
-        <div style={{ display: "flex", gap: 4, marginBottom: 20 }}>
+        <div className="demo-tabs" style={{ display: "flex", gap: 4, marginBottom: 20 }}>
           {[["funnel", "Funnel"], ["source", "By Source"], ["velocity", "Velocity"], ["health", "Deal Health"]].map(([k, l]) => (
             <button key={k} onClick={() => setTab(k)} style={{ padding: "8px 18px", borderRadius: 8, border: "none", background: tab === k ? "#6366f120" : "transparent", color: tab === k ? "#a78bfa" : "#64748b", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>{l}</button>
           ))}
@@ -165,16 +166,16 @@ export default function ConvertPath({ initialDealScores = [] }) {
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px 48px" }}>
         {/* KPI cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 24 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 24 }}>
           <MetricCard label="Total Leads" value={totalLeads} />
-          <MetricCard label="Win Rate" value={`${winRate}%`} color={Number(winRate) >= 15 ? "#10b981" : "#f59e0b"} />
+          <MetricCard label="Lead-to-win conversion" value={`${winRate}%`} color={Number(winRate) >= 15 ? "#10b981" : "#f59e0b"} />
           <MetricCard label="Avg Cycle" value={`${avgCycle}d`} sub="lead to close" />
           <MetricCard label="Avg ACV" value={`$${(avgACV / 1000).toFixed(0)}K`} color="#38bdf8" />
-          <MetricCard label="Leaky Stage" value={leakyStage.stage.split(" → ")[1] || "—"} sub={`${leakyStage.rate}% drop-off`} color="#ef4444" />
+          <MetricCard label="Largest count drop" value={leakyStage.stage.split(" → ")[1] || "—"} sub={`${leakyStage.rate ?? "0.0"}% drop-off`} color="#ef4444" />
         </div>
 
         {tab === "funnel" && (
-          <div style={{ background: "#111b2e", borderRadius: 12, border: "1px solid #1e293b", padding: 24 }}>
+          <div className="demo-table-scroll"><div className="demo-table" style={{ background: "#111b2e", borderRadius: 12, border: "1px solid #1e293b", padding: 24 }}>
             <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
               <div style={{ width: 100 }} />
               <div style={{ flex: 1, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#475569" }}>Volume & Conversion</div>
@@ -185,20 +186,20 @@ export default function ConvertPath({ initialDealScores = [] }) {
               <FunnelBar key={d.stage} label={d.stage} count={d.count} total={funnelData[0].count} prevCount={i > 0 ? funnelData[i - 1].count : d.count} value={d.value} color={colors[i]} maxWidth={500} />
             ))}
             <div style={{ marginTop: 20, padding: 16, background: "#0b1120", borderRadius: 8 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#ef4444", marginBottom: 6 }}>Leaky Bucket Diagnostic</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#ef4444", marginBottom: 6 }}>Conversion sensitivity</div>
               <p style={{ fontSize: 13, color: "#94a3b8", margin: 0, lineHeight: 1.6 }}>
-                Biggest drop-off: <strong style={{ color: "#e2e8f0" }}>{leakyStage.stage}</strong> — losing {leakyStage.drop} deals ({leakyStage.rate}% attrition). This stage represents the highest-leverage improvement opportunity. Reducing attrition here by even 10% would yield an estimated ${Math.round(leakyStage.drop * 0.1 * avgACV / 1000)}K in additional pipeline.
+                Biggest drop-off: <strong style={{ color: "#e2e8f0" }}>{leakyStage.stage}</strong> — losing {leakyStage.drop} deals ({leakyStage.rate}% attrition). A scenario that recovers 10% of these dropped leads, at the observed mean won ACV, represents ${Math.round(leakyStage.drop * 0.1 * avgACV / 1000)}K of potential ACV entering the next stage. This is not expected bookings: later-stage conversion, qualification quality, and capacity are not modeled.
               </p>
             </div>
-          </div>
+          </div></div>
         )}
 
         {tab === "source" && (
-          <div style={{ background: "#111b2e", borderRadius: 12, border: "1px solid #1e293b", overflow: "hidden" }}>
+          <div className="demo-table-scroll"><div className="demo-table" style={{ background: "#111b2e", borderRadius: 12, border: "1px solid #1e293b", overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid #1e293b" }}>
-                  {["Source","Leads","Won","Win Rate","Avg Cycle","Won ACV"].map(h => (
+                  {["Source","Leads","Won","Lead-to-win","Mean won cycle","Won ACV"].map(h => (
                     <th key={h} style={{ padding: "12px 16px", textAlign: "right", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#475569" }}>{h}</th>
                   ))}
                 </tr>
@@ -216,12 +217,12 @@ export default function ConvertPath({ initialDealScores = [] }) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </div></div>
         )}
 
         {tab === "velocity" && (
           <div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(240px, 100%), 1fr))", gap: 12 }}>
               {SIZES.slice(0, 4).map(sz => {
                 const d = filtered.filter(x => x.size === sz && x.won);
                 const avg = d.length > 0 ? Math.round(d.reduce((a, x) => a + x.daysInPipeline, 0) / d.length) : 0;
@@ -239,26 +240,16 @@ export default function ConvertPath({ initialDealScores = [] }) {
                   </div>
                 );
               })}
-              {/* Weighted pipeline forecast */}
-              {(() => {
-                const stageWeights = [0.05, 0.15, 0.30, 0.50, 0.75, 1.0];
-                const openDeals = filtered.filter(d => !d.won && !d.lost);
-                const weighted = openDeals.reduce((a, d) => a + d.acv * stageWeights[d.stageReached], 0);
-                return (
-                  <div style={{ background: "#111b2e", borderRadius: 10, padding: 18, border: "1px solid #6366f140" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#a78bfa" }}>Weighted Pipeline Forecast</div>
-                    <div style={{ fontSize: 28, fontWeight: 800, color: "#a78bfa", marginTop: 8 }}>${(weighted / 1000).toFixed(0)}K</div>
-                    <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>based on stage-weighted probability</div>
-                  </div>
-                );
-              })()}
-              <MetricCard label="Total Won Revenue" value={`$${(totalACV / 1000000).toFixed(1)}M`} color="#10b981" sub={`${wonDeals.length} closed deals`} />
+              <div style={{ background: "#111b2e", border: "1px solid #1e293b", padding: 18, borderRadius: 10 }}>
+                <p style={{ fontSize: 12, lineHeight: 1.7, color: "#94a3b8" }}>This funnel simulates completed lead cohorts. It does not contain live open opportunities or support a bookings forecast. Deal Health uses a separate synthetic sample.</p>
+              </div>
+              <MetricCard label="Won ACV" value={`$${(totalACV / 1000000).toFixed(1)}M`} color="#10b981" sub={`${wonDeals.length} closed deals`} />
             </div>
           </div>
         )}
 
         {tab === "health" && (
-          <div>
+          <div className="demo-table-scroll"><div className="demo-table">
             {dealScores.length === 0 ? (
               <div style={{ background: "#111b2e", borderRadius: 12, padding: 24, border: "1px solid #1e293b", textAlign: "center" }}>
                 <div style={{ fontSize: 14, color: "#64748b" }}>Loading deal scores from ML pipeline...</div>
@@ -266,7 +257,7 @@ export default function ConvertPath({ initialDealScores = [] }) {
             ) : (
               <>
                 {/* Summary cards */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 16 }}>
                   {[
                     { tier: "Strong", color: "#10b981", icon: "●" },
                     { tier: "On Track", color: "#38bdf8", icon: "●" },
@@ -289,7 +280,7 @@ export default function ConvertPath({ initialDealScores = [] }) {
                 <div style={{ fontSize: 11, color: "#475569", padding: "8px 12px", background: "#111b2e", borderRadius: 6, border: "1px solid #1e293b", marginBottom: 16, display: "flex", gap: 16 }}>
                   <span><span style={{ color: "#a78bfa" }}>●</span> Model: Logistic Regression (L2)</span>
                   <span>Features: engagement recency, stage stall, source, rep skill, ACV</span>
-                  <span>Scored: {dealScores.length} open deals</span>
+                  <span>Separate sample: {dealScores.length} open deals; funnel filters do not apply</span>
                 </div>
 
                 {/* Deal table */}
@@ -326,12 +317,12 @@ export default function ConvertPath({ initialDealScores = [] }) {
                 {/* Model methodology note */}
                 <div style={{ marginTop: 16, padding: 14, background: "#111b2e", borderRadius: 8, border: "1px solid #1e293b" }}>
                   <p style={{ fontSize: 11, color: "#475569", lineHeight: 1.6, margin: 0 }}>
-                    <strong style={{ color: "#a78bfa" }}>Model:</strong> L2-regularized logistic regression trained on 800 historical deals (640 train / 160 test). Features: engagement recency, stage stall duration, source channel, rep performance index, deal size, champion status, competitor presence, legal review duration, plus derived velocity and flag features. Scored pipeline loaded from <code style={{ color: "#10b981", background: "#0b1120", padding: "1px 4px", borderRadius: 3 }}>deal_scoring_model.py</code> output. In production, model would retrain weekly on fresh Salesforce data.
+                    <strong style={{ color: "#a78bfa" }}>Model:</strong> L2-regularized logistic regression trained on 800 synthetic deals (640 train / 160 test). Features: engagement recency, stage stall duration, source channel, rep performance index, deal size, champion status, competitor presence, legal review duration, plus derived velocity and flag features. Scored pipeline loaded from <code style={{ color: "#10b981", background: "#0b1120", padding: "1px 4px", borderRadius: 3 }}>deal_scoring_model.py</code> output. The displayed health score is a 10–90 index scaled using training-set probability bounds, not a close probability. Test AUC: {modelMetrics.auc_roc.toFixed(3)}; precision: {(modelMetrics.precision * 100).toFixed(1)}%; recall: {(modelMetrics.recall * 100).toFixed(1)}%. These results are from a synthetic holdout, not validated on company deals. Recommendations use separate rules and may disagree with the score; investigate before acting.
                   </p>
                 </div>
               </>
             )}
-          </div>
+          </div></div>
         )}
       </div>
     </div>

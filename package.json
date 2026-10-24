@@ -17,7 +17,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "cd data/pipeline && pytest -q"
+    "test": "node --test tests/*.test.mjs && cd data/pipeline && pytest -q",
+    "test:scenario": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",

@@ -24,7 +24,7 @@ export default function SpectrumIQ({ initialData = [] }) {
   const [expanded, setExpanded] = useState(null);
   const [sortBy, setSortBy] = useState("composite_score");
   const allData = initialData;
-  const dataSource = `Pipeline output: ${allData.length} metro × specialty scores from spectrumiq_pipeline.py`;
+  const dataSource = `Synthetic provider counts + embedded metro reference values · ${allData.length} illustrative scores`;
 
   const filtered = useMemo(() => {
     const rows = allData.filter(d => d.specialty === specialty);
@@ -35,7 +35,7 @@ export default function SpectrumIQ({ initialData = [] }) {
   const tierLabel = (score) => score >= 70 ? "High Opportunity" : score >= 45 ? "Moderate" : "Low Priority";
 
   return (
-    <div style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", background: "var(--bg)", color: "var(--fg)", minHeight: "100vh", padding: 0, ["--bg"]: "#0b1120", ["--fg"]: "#e2e8f0", ["--card"]: "#111b2e", ["--card-border"]: "#1e293b", ["--accent"]: "#38bdf8", ["--accent2"]: "#0d9488", ["--bar-bg"]: "#1e293b", ["--muted"]: "#64748b" }}>
+    <div className="demo-page" style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", background: "var(--bg)", color: "var(--fg)", minHeight: "100vh", padding: 0, ["--bg"]: "#0b1120", ["--fg"]: "#e2e8f0", ["--card"]: "#111b2e", ["--card-border"]: "#1e293b", ["--accent"]: "#38bdf8", ["--accent2"]: "#0d9488", ["--bar-bg"]: "#1e293b", ["--muted"]: "#64748b" }}>
 
       {/* Header */}
       <div style={{ padding: "32px 32px 0", maxWidth: 1100, margin: "0 auto" }}>
@@ -45,13 +45,13 @@ export default function SpectrumIQ({ initialData = [] }) {
           ← Portfolio
         </a>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 8, background: "linear-gradient(135deg, #38bdf8, #0d9488)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, color: "#0b1120" }}>S</div>
+
           <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--accent)" }}>SpectrumIQ</span>
-          <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: "#10b98118", color: "#10b981", fontWeight: 600 }}>Pipeline-Fed</span>
+          <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: "#10b98118", color: "#10b981", fontWeight: 600 }}>Illustrative data</span>
         </div>
-        <h1 style={{ fontSize: 28, fontWeight: 800, margin: "12px 0 6px", letterSpacing: "-0.02em", lineHeight: 1.15 }}>Specialty Practice Market Opportunity Scorer</h1>
+        <h1 style={{ fontSize: 28, fontWeight: 800, margin: "12px 0 6px", letterSpacing: "-0.02em", lineHeight: 1.15 }}>Market prioritization exercise</h1>
         <p style={{ fontSize: 14, color: "var(--muted)", margin: "0 0 8px", maxWidth: 620, lineHeight: 1.55 }}>
-          Identifies underpenetrated metro areas for specialty EHR adoption using CMS NPPES provider density, Census demographics, and Medicare utilization signals.
+          Compare metro areas using provider density, population growth, Medicare share, and income assumptions. The score does not measure existing EHR adoption or purchase intent.
         </p>
 
         {/* Data source indicator */}
@@ -82,7 +82,8 @@ export default function SpectrumIQ({ initialData = [] }) {
 
       {/* Table */}
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px 48px" }}>
-        <div style={{ background: "var(--card)", borderRadius: 12, border: "1px solid var(--card-border)", overflow: "hidden" }}>
+        <div className="demo-table-scroll" tabIndex={0} role="region" aria-label="Metro prioritization scores" style={{ background: "var(--card)", borderRadius: 12, border: "1px solid var(--card-border)", overflow: "hidden" }}>
+          <div className="demo-table">
           {/* Header row */}
           <div style={{ display: "grid", gridTemplateColumns: "40px 1.4fr 0.7fr 0.7fr 0.6fr 1.2fr 0.8fr", padding: "14px 20px", borderBottom: "1px solid var(--card-border)", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)" }}>
             <span>#</span><span>Metro Area</span><span style={{ textAlign: "right" }}>Providers</span><span style={{ textAlign: "right" }}>Per 100K</span><span style={{ textAlign: "right" }}>Score</span><span style={{ textAlign: "center" }}>Opportunity</span><span style={{ textAlign: "center" }}>Tier</span>
@@ -90,7 +91,7 @@ export default function SpectrumIQ({ initialData = [] }) {
 
           {filtered.map((m, i) => (
             <div key={m.metro}>
-              <div onClick={() => setExpanded(expanded === i ? null : i)} style={{
+              <div role="button" tabIndex={0} aria-expanded={expanded === i} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setExpanded(expanded === i ? null : i); } }} onClick={() => setExpanded(expanded === i ? null : i)} style={{
                 display: "grid", gridTemplateColumns: "40px 1.4fr 0.7fr 0.7fr 0.6fr 1.2fr 0.8fr", padding: "14px 20px", borderBottom: "1px solid var(--card-border)", cursor: "pointer", transition: "background 0.15s", alignItems: "center",
                 background: expanded === i ? "var(--accent)" + "08" : "transparent"
               }}
@@ -125,27 +126,24 @@ export default function SpectrumIQ({ initialData = [] }) {
                     ))}
                   </div>
                   <div style={{ background: "var(--card)", borderRadius: 8, padding: 14, border: "1px solid var(--card-border)" }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", marginBottom: 6 }}>Why This Market</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", marginBottom: 6 }}>How to interpret this score</div>
                     <p style={{ fontSize: 13, color: "var(--fg)", lineHeight: 1.6, margin: 0 }}>
-                      {m.composite_score >= 70
-                        ? `${m.metro} shows strong opportunity for ${specialty} EHR penetration. With only ${m.per_100k} providers per 100K residents (vs. ${m.national_benchmark} national average), the market is underserved. Combined with ${m.growth_rate}% population growth and ${m.medicare_pct}% Medicare density, this metro represents a high-value target for GTM investment.`
-                        : m.composite_score >= 45
-                        ? `${m.metro} presents moderate opportunity. Provider density at ${m.per_100k} per 100K is approaching the national benchmark of ${m.national_benchmark}, but ${m.growth_rate}% population growth creates expanding demand. Consider targeted outreach to new practices forming in growth corridors.`
-                        : `${m.metro} has relatively strong provider coverage at ${m.per_100k} per 100K. Market opportunity here is primarily through competitive displacement and upsell to existing practices rather than greenfield expansion.`
-                      }
+                      {`${m.metro} scores ${m.composite_score}/100 under the selected weights. Provider density is ${m.per_100k} per 100K against a reference value of ${m.national_benchmark}; population growth is ${m.growth_rate}%. These inputs can guide a research shortlist, but low provider density can also mean fewer potential buyers. Validate practice counts, installed software, budget, and sales capacity before prioritizing outreach.`}
+
                     </p>
                   </div>
                 </div>
               )}
             </div>
           ))}
+          </div>
         </div>
 
         {/* Methodology note */}
         <div style={{ marginTop: 24, padding: 20, background: "var(--card)", borderRadius: 10, border: "1px solid var(--card-border)" }}>
           <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--muted)", marginBottom: 8 }}>Methodology & Data Pipeline</div>
           <p style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.65, margin: 0 }}>
-            Data produced by <code style={{ color: "#10b981", background: "#1e293b", padding: "1px 4px", borderRadius: 3, fontSize: 11 }}>spectrumiq_pipeline.py</code> — a Python ETL pipeline that processes CMS NPPES provider data filtered by specialty taxonomy codes, joins to Census metro populations via ZIP-code mapping, and computes weighted composite scores. Weights: Provider Gap (35%), Population Growth (25%), Medicare Density (20%), Income Index (20%). Pipeline output validated with automated data quality checks (see <code style={{ color: "#10b981", background: "#1e293b", padding: "1px 4px", borderRadius: 3, fontSize: 11 }}>test_pipeline.py</code>). Full source in <code style={{ color: "#10b981", background: "#1e293b", padding: "1px 4px", borderRadius: 3, fontSize: 11 }}>data/pipeline/</code>.
+            This checked-in example combines generated provider counts with embedded demographic reference values. CMS NPPES and Census are source references, not verified live inputs to this displayed snapshot. Weights: provider density gap 35%, population growth 25%, Medicare population share 20%, income 20%. Medicare share is not measured utilization. Weights and tier cutoffs are analyst assumptions, not a fitted adoption model. The Python pipeline also accepts local source files; its checks validate output shape and ranges, not source accuracy or sales outcomes.
           </p>
         </div>
       </div>

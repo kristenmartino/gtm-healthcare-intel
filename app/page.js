@@ -1,225 +1,97 @@
 import Link from "next/link";
 
-const MATURITY_LEVELS = [
-  { level: "Governance", color: "#fbbf24", label: "The foundation — metric standardization, data trust, adoption" },
-  { level: "Descriptive", color: "#64748b", label: "What happened?" },
-  { level: "Diagnostic", color: "#f59e0b", label: "Why did it happen?" },
-  { level: "Predictive", color: "#38bdf8", label: "What will happen?" },
-  { level: "Prescriptive", color: "#10b981", label: "What should we do?" },
+const CASE_STUDIES = [
+  {
+    number: "01", title: "Where does the sales pipeline lose momentum?",
+    name: "Pipeline conversion", project: "ConvertPath", href: "/convertpath",
+    description: "Compare stage conversion and sales cycle by specialty, source, and quarter. Use the deal review to see which accounts need a closer look.",
+    method: "Stage conversion · Source comparison · Deal scoring",
+    limitation: "Synthetic deals. Improvement scenarios are assumptions, not recovered revenue.",
+    action: "Explore the funnel",
+  },
+  {
+    number: "02", title: "Can the team agree on what the numbers mean?",
+    name: "Metric definitions & reporting adoption", project: "NorthStar", href: "/northstar",
+    description: "Review competing metric definitions, named owners, and reporting adoption. Inspect statistical alerts and the checks suggested for each deviation.",
+    method: "Metric registry · Adoption tracking · Statistical alerts",
+    limitation: "A simulated reporting environment. Alerts suggest investigations; they do not establish causes.",
+    action: "Review the metrics",
+  },
 ];
 
-const PROJECTS = [
-  {
-    name: "NorthStar",
-    slug: "northstar",
-    pitch: "GTM analytics governance platform — metric registry with conflict resolution, reporting adoption tracker, shadow spreadsheet monitor, maturity roadmap, and a prescriptive anomaly detection engine that generates actionable alerts from metric time-series data.",
-    skills: ["Metric Standardization", "Data Governance", "Adoption Tracking", "Anomaly Detection", "Prescriptive Analytics"],
-    color: "#fbbf24",
-    gradient: "linear-gradient(135deg, #f59e0b, #10b981)",
-    icon: "N",
-    maturity: "Governance → Prescriptive",
-    gtmProblem: "Whether to enforce Stage 2+ with $5K floor as the company-wide pipeline definition before next quarter's board deck — and what to do about the three teams still running their own shadow spreadsheets.",
-    featured: true,
-    isNew: true,
-  },
-  {
-    name: "AskGTM",
-    slug: "askgtm",
-    pitch: "AI-powered conversational analytics for GTM teams. Ask plain-English questions about pipeline, rep performance, win rates, and churn — get instant answers with actionable recommendations.",
-    skills: ["AI/LLM Integration", "NL Querying", "Prescriptive Analytics", "GTM Intelligence"],
-    color: "#6366f1",
-    gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-    icon: "A",
-    maturity: "Prescriptive",
-    gtmProblem: "Whether to give field sales leaders a conversational analytics layer over the GTM warehouse — trading the static dashboard tier for unprompted self-serve, and trusting the metric registry to keep the answers governed.",
-    featured: true,
-    isNew: true,
-  },
-  {
-    name: "ConvertPath",
-    slug: "convertpath",
-    pitch: "Sales funnel analyzer with stage-by-stage conversion rates, source attribution, velocity analysis by deal size, weighted pipeline forecast, and leaky bucket diagnostics.",
-    skills: ["Funnel Analysis", "Pipeline Forecasting", "Win/Loss Analysis", "Sales Velocity"],
-    color: "#8b5cf6",
-    gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-    icon: "C",
-    maturity: "Diagnostic → Predictive",
-    gtmProblem: "Where to spend the next quarter's RevOps cycles — Lead→Qualified is the largest leak at $1.96M of recoverable pipeline, and the choice is whether SDR headcount or legal-review SLA gets the resource.",
-  },
-  {
-    name: "SpectrumIQ",
-    slug: "spectrumiq",
-    pitch: "Market opportunity scoring that ranks metro areas by specialty EHR adoption potential using CMS provider density, Census demographics, and Medicare utilization.",
-    skills: ["Market Sizing", "Segmentation", "Opportunity Scoring", "TAM/SAM Analysis"],
-    color: "#38bdf8",
-    gradient: "linear-gradient(135deg, #38bdf8, #0d9488)",
-    icon: "S",
-    maturity: "Diagnostic",
-    gtmProblem: "Which 5 metros to staff a specialty-EHR sales pod against next year, weighted by underserved provider density (CMS NPPES), demographic growth (Census), and Medicare utilization — and which markets to deprioritize despite high population.",
-  },
-  {
-    name: "PracticeFlow",
-    slug: "practiceflow",
-    pitch: "Revenue cycle benchmarking dashboard comparing practice KPIs against synthetic peer cohorts — the kind of analytics that drives EHR platform stickiness and reduces churn.",
-    skills: ["KPI Design", "Benchmarking", "Cohort Analysis", "Revenue Cycle Analytics"],
-    color: "#0d9488",
-    gradient: "linear-gradient(135deg, #0d9488, #14b8a6)",
-    icon: "P",
-    maturity: "Descriptive",
-    gtmProblem: "Whether to make peer-cohort RCM benchmarking the centerpiece of the next renewal pitch — and which 5 KPIs (Days in A/R, denial rate, collection rate, no-show, payer mix) to anchor it on for the practice managers who'll actually open the report.",
-  },
-  {
-    name: "SpecialtyPulse",
-    slug: "specialtypulse",
-    pitch: "Procedure volume and reimbursement trend monitor with auto-flagging of accelerating CPT codes — early market signals for GTM planning.",
-    skills: ["Trend Analysis", "Market Intelligence", "Signal Detection", "Strategic Planning"],
-    color: "#f59e0b",
-    gradient: "linear-gradient(135deg, #f59e0b, #ef4444)",
-    icon: "S",
-    maturity: "Descriptive → Diagnostic",
-    gtmProblem: "Which specialty vertical to fund product investment in for the next 18 months — derm laser/Mohs has a 9% CAGR tailwind, ortho ASC migration is the wedge in joint arthroplasty, and ophtho MIGS is the highest-growth signal in the dataset.",
-  },
-  {
-    name: "AskPractice",
-    slug: "askpractice",
-    pitch: "AI-powered practice performance tool — a practice manager asks plain-English questions about their revenue, denials, and provider productivity and gets instant answers.",
-    skills: ["AI/LLM Integration", "NL Querying", "Product Innovation", "Data Storytelling"],
-    color: "#10b981",
-    gradient: "linear-gradient(135deg, #10b981, #059669)",
-    icon: "A",
-    maturity: "Prescriptive",
-    gtmProblem: "Whether natural-language practice analytics belongs on the SMB renewal-pitch checklist — and which questions practice managers actually ask vs. which the assistant must refuse on HIPAA grounds.",
-  },
+const TOOLS = [
+  { title: "Market prioritization", name: "SpectrumIQ", href: "/spectrumiq", description: "Rank metros using provider density and demographic assumptions. Inspect the components behind each score." },
+  { title: "Practice benchmarking", name: "PracticeFlow", href: "/practiceflow", description: "Compare revenue cycle measures with a synthetic peer cohort and explore a sample denial breakdown." },
+  { title: "Procedure trends", name: "SpecialtyPulse", href: "/specialtypulse", description: "Compare illustrative procedure volumes and reimbursement trends across specialties." },
+  { title: "GTM questions", name: "AskGTM", href: "/askgtm", description: "Ask Claude about a synthetic sales dataset. Review the data summary and limits behind its answers." },
+  { title: "Practice questions", name: "AskPractice", href: "/askpractice", description: "Ask about aggregate practice performance using a fictional practice dataset." },
 ];
 
 export default function Home() {
   return (
-    <div style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", background: "#0b1120", color: "#e2e8f0", minHeight: "100vh" }}>
-      {/* Hero */}
-      <div style={{ padding: "48px 32px 40px", maxWidth: 960, margin: "0 auto" }}>
-        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#64748b", marginBottom: 12 }}>Portfolio — GTM Business Intelligence</div>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 40, fontWeight: 800, lineHeight: 1.1, marginBottom: 12, letterSpacing: "-0.02em" }}>
-          Specialty Healthcare<br />
-          <span style={{ background: "linear-gradient(135deg, #fbbf24, #10b981)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>GTM Intelligence</span>
-        </h1>
-        <p style={{ fontSize: 16, color: "#94a3b8", lineHeight: 1.65, maxWidth: 680, marginBottom: 8 }}>
-          Seven projects spanning the full analytics maturity curve — from metric governance and standardized reporting through diagnostic analysis to AI-powered prescriptive recommendations. Built for GTM teams in the specialty EHR space.
-        </p>
-        <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.6 }}>
-          Built by Kristen Martino · All projects use synthetic or publicly available data (CMS NPPES, Medicare PUF, Census, Salesforce-modeled) · No proprietary data
-        </p>
-      </div>
-
-      {/* Maturity model strip */}
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 32px 24px" }}>
-        <div style={{ background: "#111b2e", borderRadius: 12, padding: "16px 20px", border: "1px solid #1e293b" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", marginBottom: 12 }}>Analytics Maturity Model — Project Mapping</div>
-          <div style={{ display: "flex", gap: 6 }}>
-            {MATURITY_LEVELS.map(l => (
-              <div key={l.level} style={{ flex: 1, padding: "10px 12px", borderRadius: 8, background: l.color + "10", border: `1px solid ${l.color}25` }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: l.color, marginBottom: 2 }}>{l.level}</div>
-                <div style={{ fontSize: 10, color: "#64748b", lineHeight: 1.4 }}>{l.label}</div>
-                <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 2 }}>
-                  {PROJECTS.filter(p => p.maturity.includes(l.level)).map(p => (
-                    <div key={p.slug} style={{ fontSize: 10, fontWeight: 700, color: p.color }}>{p.name}</div>
-                  ))}
+    <div className="portfolio-home">
+      <a className="skip-link" href="#main">Skip to content</a>
+      <header className="portfolio-nav">
+        <span className="portfolio-author">Kristen Martino<span>Analytics portfolio</span></span>
+        <a href="https://github.com/kristenmartino/gtm-healthcare-intel" target="_blank" rel="noopener noreferrer">View source <span aria-hidden="true">↗</span></a>
+      </header>
+      <main id="main" className="portfolio-main">
+        <section className="portfolio-intro" aria-labelledby="portfolio-title">
+          <div>
+            <p className="portfolio-eyebrow">Specialty healthcare · Synthetic demos</p>
+            <h1 id="portfolio-title">GTM analytics for specialty healthcare software.</h1>
+            <p className="portfolio-lede">Interactive demos exploring pipeline conversion, market prioritization, and metric governance. Each example explains its data, calculations, and limitations.</p>
+          </div>
+          <aside className="portfolio-data-note" aria-label="Data scope">
+            <span className="portfolio-note-label">About the data</span>
+            <p>These are demonstrations using synthetic data and reference assumptions. They contain no patient or company data.</p>
+            <p>Public source references describe the intended inputs. They do not establish a live data connection.</p>
+          </aside>
+        </section>
+        <section className="portfolio-section" aria-labelledby="case-studies-title">
+          <div className="portfolio-section-heading"><h2 id="case-studies-title">Two questions to start with</h2><span>Interactive case studies</span></div>
+          <div className="portfolio-cases">
+            {CASE_STUDIES.map(study => (
+              <article key={study.href} className="portfolio-case">
+                <span className="portfolio-case-number" aria-hidden="true">{study.number}</span>
+                <div className="portfolio-case-main">
+                  <p className="portfolio-case-label">{study.name} <span>/ {study.project}</span></p>
+                  <h3><Link href={study.href}>{study.title}</Link></h3>
+                  <p className="portfolio-case-description">{study.description}</p>
+                  <Link className="portfolio-action" href={study.href}>{study.action} <span aria-hidden="true">→</span></Link>
                 </div>
-              </div>
+                <dl className="portfolio-case-notes">
+                  <div><dt>What to inspect</dt><dd>{study.method}</dd></div>
+                  <div><dt>Keep in mind</dt><dd>{study.limitation}</dd></div>
+                </dl>
+              </article>
             ))}
           </div>
-        </div>
-      </div>
-
-      {/* Project cards */}
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 32px 64px" }}>
-        <div style={{ display: "grid", gap: 14 }}>
-          {PROJECTS.map((p) => (
-            <Link href={`/${p.slug}`} key={p.slug} style={{ textDecoration: "none", color: "inherit" }}>
-              <div
-                className="project-card"
-                style={{
-                  background: "#111b2e",
-                  borderRadius: 14,
-                  border: p.featured ? `1.5px solid ${p.color}40` : "1px solid #1e293b",
-                  padding: 24,
-                  cursor: "pointer",
-                  transition: "transform 0.2s, border-color 0.2s",
-                  position: "relative",
-                  "--hover-border": p.color + "60",
-                }}
-              >
-                <div style={{ position: "absolute", top: 14, right: 16, display: "flex", gap: 6 }}>
-                  {p.isNew && (
-                    <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#10b98118", color: "#10b981", textTransform: "uppercase", letterSpacing: "0.06em" }}>New</span>
-                  )}
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#1e293b", color: "#94a3b8" }}>{p.maturity}</span>
-                </div>
-
-                <div style={{ display: "flex", gap: 18, alignItems: "flex-start" }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 10, background: p.gradient, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800, color: "#fff", flexShrink: 0 }}>{p.icon}</div>
-
-                  <div style={{ flex: 1 }}>
-                    <h2 style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.01em", marginBottom: 6 }}>{p.name}</h2>
-                    <p style={{ fontSize: 14, color: "#94a3b8", lineHeight: 1.6, marginBottom: 12 }}>{p.pitch}</p>
-
-                    <div style={{ background: "#0b1120", borderRadius: 8, padding: "10px 14px", marginBottom: 12 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: p.color }}>GTM Decision: </span>
-                      <span style={{ fontSize: 12, color: "#94a3b8" }}>{p.gtmProblem}</span>
-                    </div>
-
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      {p.skills.map((s) => (
-                        <span key={s} style={{ padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: "#1e293b", color: "#94a3b8" }}>{s}</span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={{ fontSize: 20, color: "#475569", alignSelf: "center", flexShrink: 0 }}>→</div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* Supporting resources */}
-        <div style={{ marginTop: 20, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-          <Link href="/methodology" style={{ textDecoration: "none", color: "inherit" }}>
-            <div className="resource-card" style={{ background: "#111b2e", borderRadius: 10, padding: "16px 18px", border: "1px solid #1e293b", cursor: "pointer", transition: "border-color 0.2s", "--hover-border": "#38bdf860" }}>
-              <div style={{ fontSize: 16, marginBottom: 6 }}>{`</>`}</div>
-              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>SQL Methodology</div>
-              <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>Production-ready SQL for every GTM metric — with edge case handling and cross-team conflict resolution notes.</div>
-            </div>
-          </Link>
-          <Link href="/q1-review" style={{ textDecoration: "none", color: "inherit" }}>
-            <div className="resource-card" style={{ background: "#111b2e", borderRadius: 10, padding: "16px 18px", border: "1px solid #1e293b", cursor: "pointer", transition: "border-color 0.2s", "--hover-border": "#f59e0b60" }}>
-              <div style={{ fontSize: 16, marginBottom: 6 }}>📊</div>
-              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Q1 Performance Review</div>
-              <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>Analytical memo with segment breakdowns, root cause analysis, and prioritized recommendations — the actual deliverable.</div>
-            </div>
-          </Link>
-          <a href="https://github.com/kristenmartino/gtm-healthcare-intel/tree/main/data/pipeline" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", color: "inherit" }}>
-            <div className="resource-card" style={{ background: "#111b2e", borderRadius: 10, padding: "16px 18px", border: "1px solid #1e293b", cursor: "pointer", transition: "border-color 0.2s", "--hover-border": "#10b98160" }}>
-              <div style={{ fontSize: 16, marginBottom: 6 }}>🔧</div>
-              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Data Pipeline (GitHub)</div>
-              <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>Python ETL pipeline turning CMS NPPES + Census public data into SpectrumIQ opportunity scores — synthetic by default, with a real-NPPES path. pandas + NumPy.</div>
-            </div>
-          </a>
-        </div>
-
-        {/* About section */}
-        <div style={{ marginTop: 32, padding: 20, background: "#111b2e", borderRadius: 10, border: "1px solid #1e293b" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>About This Portfolio</div>
-          <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.7, marginBottom: 10 }}>
-            These projects are organized around a core belief: the hardest part of GTM analytics isn't building dashboards — it's building the operating model underneath them. Metric standardization, data trust, reporting adoption, and organizational readiness are prerequisites for the kind of predictive and prescriptive analytics that actually change business outcomes. That's why NorthStar (governance) and AskGTM (prescriptive AI) sit at the top — they represent the foundation and the destination.
-          </p>
-          <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.7, marginBottom: 10 }}>
-            All data is synthetic or derived from publicly available sources (CMS NPPES provider registry, Medicare Physician PUF, Census Bureau, MGMA/HFMA published benchmarks, Salesforce-modeled GTM data). No proprietary or patient data was used.
-          </p>
-          <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.7 }}>
-            <strong style={{ color: "#e2e8f0" }}>Tech stack:</strong> React, Next.js, Python data pipelines (pandas, NumPy, L2 logistic regression), Claude API (Anthropic) for natural language analytics. Each project is designed to be extensible with real data sources (Salesforce, HubSpot, billing systems, data warehouses).
-          </p>
-        </div>
-      </div>
+        </section>
+        <section className="portfolio-section" aria-labelledby="tools-title">
+          <div className="portfolio-section-heading"><h2 id="tools-title">More ways to explore</h2><span>Five supporting demos</span></div>
+          <div className="portfolio-tools">
+            {TOOLS.map(tool => (
+              <Link href={tool.href} key={tool.href} className="portfolio-tool">
+                <div className="portfolio-tool-title"><h3>{tool.title}</h3><span>{tool.name}</span></div>
+                <p>{tool.description}</p><span className="portfolio-tool-arrow" aria-hidden="true">↗</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+        <section className="portfolio-section portfolio-resources" aria-labelledby="resources-title">
+          <div className="portfolio-section-heading"><h2 id="resources-title">Behind the analysis</h2></div>
+          <div className="portfolio-resource-list">
+            <Link href="/q1-review"><span>01 / Analytical memo</span><h3>Illustrative Q1 review <span aria-hidden="true">↗</span></h3><p>Reconciled scenario figures, observations, and proposed follow-up work.</p></Link>
+            <Link href="/methodology"><span>02 / Metric definitions</span><h3>Example SQL <span aria-hidden="true">↗</span></h3><p>Calculation logic, denominator choices, and implementation assumptions.</p></Link>
+            <a href="https://github.com/kristenmartino/gtm-healthcare-intel/tree/main/data/pipeline" target="_blank" rel="noopener noreferrer"><span>03 / Source code</span><h3>Python pipelines <span aria-hidden="true">↗</span></h3><p>Data generation, score calculations, and automated checks.</p></a>
+          </div>
+        </section>
+        <footer className="portfolio-footer">
+          <p>Built by Kristen Martino.</p>
+          <p>React and Next.js for the interactive views; Python for data pipelines and deal scoring; the Claude API for the two question interfaces. Data and model limitations are documented in each demo.</p>
+        </footer>
+      </main>
     </div>
   );
 }

@@ -94,7 +94,7 @@ function MiniBar({ data, labels, color, height = 60, width = 200 }) {
   const barW = width / data.length - 3;
   return (
     <div>
-      <svg viewBox={`0 0 ${width} ${height}`} style={{ width, height }}>
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", maxWidth: width, height }}>
         {data.map((v, i) => (
           <rect key={i} x={i * (barW + 3)} y={height - (v / max) * (height - 8)} width={barW} height={(v / max) * (height - 8)} rx={2} fill={color} opacity={0.6 + (i / data.length) * 0.4} />
         ))}
@@ -130,7 +130,7 @@ export default function AskPractice() {
 
   async function handleSend(text) {
     const q = text || input;
-    if (!q.trim()) return;
+    if (!q.trim() || loading) return;
     setInput("");
     setShowInsights(false);
     setMessages(prev => [...prev, { role: "user", text: q }]);
@@ -153,7 +153,7 @@ export default function AskPractice() {
         setMessages(prev => [...prev, { role: "assistant", text: reply }]);
       }
     } catch (err) {
-      setMessages(prev => [...prev, { role: "assistant", text: "Connection error. In a production deployment, this would query your practice database in real-time. The demo requires API connectivity." }]);
+      setMessages(prev => [...prev, { role: "assistant", text: "The model service could not be reached. Please try again. The synthetic practice summary remains available." }]);
     }
     setLoading(false);
   }
@@ -163,7 +163,7 @@ export default function AskPractice() {
   const monthLabels = PRACTICE_DATA.months.map(m => m.month);
 
   return (
-    <div style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", background: "#0b1120", color: "#e2e8f0", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div className="demo-page" style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", background: "#0b1120", color: "#e2e8f0", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       {/* Header */}
       <div style={{ padding: "24px 32px 16px", borderBottom: "1px solid #1e293b" }}>
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
@@ -173,11 +173,11 @@ export default function AskPractice() {
             ← Portfolio
           </a>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg, #10b981, #059669)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, fontWeight: 800, color: "#fff" }}>A</div>
+
             <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#34d399" }}>AskPractice</span>
-            <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, background: "#10b98118", color: "#34d399", fontWeight: 600, marginLeft: 4 }}>AI-Powered</span>
+            <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, background: "#10b98118", color: "#34d399", fontWeight: 600, marginLeft: 4 }}>Synthetic data demo</span>
           </div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, margin: "6px 0 4px" }}>Practice Performance Intelligence</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 800, margin: "6px 0 4px" }}>Questions about the practice scenario</h1>
           <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Ask plain-English questions about {PRACTICE_DATA.practiceName} · Powered by Claude</p>
         </div>
       </div>
@@ -235,7 +235,7 @@ export default function AskPractice() {
             <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Try asking</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {SAMPLE_QUESTIONS.map(q => (
-                <button key={q} onClick={() => handleSend(q)} style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #1e293b", background: "#111b2e", color: "#94a3b8", fontSize: 12, cursor: "pointer", textAlign: "left", lineHeight: 1.4, transition: "border-color 0.15s" }}
+                <button key={q} disabled={loading} onClick={() => handleSend(q)} style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #1e293b", background: "#111b2e", color: "#94a3b8", fontSize: 12, cursor: "pointer", textAlign: "left", lineHeight: 1.4, transition: "border-color 0.15s" }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = "#34d399"}
                   onMouseLeave={e => e.currentTarget.style.borderColor = "#1e293b"}
                 >{q}</button>
@@ -247,9 +247,9 @@ export default function AskPractice() {
         {/* Input */}
         <div style={{ padding: "12px 0 24px", borderTop: "1px solid #1e293b" }}>
           <div style={{ display: "flex", gap: 8 }}>
-            <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSend()}
+            <input aria-label="Question about the practice scenario" disabled={loading} value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSend()}
               placeholder="Ask about revenue, denials, provider performance, payer mix..."
-              style={{ flex: 1, padding: "12px 16px", borderRadius: 10, border: "1px solid #1e293b", background: "#111b2e", color: "#e2e8f0", fontSize: 14, outline: "none" }}
+              style={{ flex: 1, minWidth: 0, padding: "12px 16px", borderRadius: 10, border: "1px solid #1e293b", background: "#111b2e", color: "#e2e8f0", fontSize: 14, outline: "none" }}
             />
             <button onClick={() => handleSend()} disabled={loading || !input.trim()}
               style={{ padding: "12px 24px", borderRadius: 10, border: "none", background: loading ? "#1e293b" : "#10b981", color: "#fff", fontSize: 14, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", transition: "background 0.15s" }}
@@ -260,17 +260,17 @@ export default function AskPractice() {
           </div>
           <details style={{ marginTop: 8 }}>
             <summary style={{ fontSize: 11, color: "#64748b", cursor: "pointer", userSelect: "none" }}>
-              How this works — architecture, scope & HIPAA boundaries
+              How this works: data and limits
             </summary>
             <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 8, lineHeight: 1.7, padding: "12px 14px", background: "#0b1120", borderRadius: 8, border: "1px solid #1e293b" }}>
               <p style={{ margin: "0 0 8px" }}>
-                <strong style={{ color: "#e2e8f0" }}>Grounding:</strong> Same pattern as <a href="/askgtm" style={{ color: "#10b981" }}>AskGTM</a> — the server-side system prompt holds a flattened text summary of the synthetic 12-month practice dataset (5 providers × 6 payers, monthly volumes, revenue, collections, denials, no-shows, procedure mix). Claude reasons over the summary directly. In production this would be a tool-using agent over a practice-data warehouse with a governed metric registry, not text prompt-stuffing.
+                <strong style={{ color: "#e2e8f0" }}>Grounding:</strong> Same pattern as <a href="/askgtm" style={{ color: "#10b981" }}>AskGTM</a> — the server-side system prompt holds a flattened text summary of the synthetic 12-month practice dataset (5 providers × 6 payers, monthly volumes, revenue, collections, denials, no-shows, procedure mix). Claude reasons over the summary directly. There is no live EHR connection or SQL execution. The model can make mistakes and is instructed to separate observations from hypotheses.
               </p>
               <p style={{ margin: "0 0 8px" }}>
                 <strong style={{ color: "#e2e8f0" }}>Scope:</strong> Aggregate practice performance only — provider productivity, denial trends by payer, collection rates, no-show patterns, payer-mix breakdowns. Questions that require patient-identifiable information ("show me patient John Smith's chart history", "pull up MRN 12345", "which patients are overdue for follow-up") fall outside scope, and the assistant is instructed in the system prompt to decline them.
               </p>
               <p style={{ margin: 0 }}>
-                <strong style={{ color: "#e2e8f0" }}>Why the refusal matters:</strong> patient-level access requires an authenticated EHR session, role-based permissions, an audit-log entry tying the query to a documented care relationship, and HIPAA minimum-necessary review. None of those controls live in a chat layer. A model that <em>could</em> answer the question shouldn't, because the surrounding governance doesn't exist. Try asking "which provider had the most no-shows in Q3?" and you'll get a real answer; try "show me MRN 12345" and you'll get a refusal with an explanation.
+                <strong style={{ color: "#e2e8f0" }}>Limits:</strong> No patient records are present. The model is instructed to decline patient-level questions; this prompt behavior is not a privacy control or a compliance certification. Do not enter patient information. Questions are sent independently without previous chat turns. Denials are counts, and no claim denominator or denial reasons are supplied.
               </p>
             </div>
           </details>
