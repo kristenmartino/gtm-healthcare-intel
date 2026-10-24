@@ -37,7 +37,8 @@ test('no-show questions and monthly rankings return the actual 746 total and pre
     const text=answer(q);assert.match(text,/Yamamoto: 129/);assert.match(text,/Practice total: 746/);assert.doesNotMatch(text,/Yamamoto: 138|755/);
   }
   const text=answer('Who has the most no-shows and which months are worst?');
-  assert.match(text,/Brooks \(174\)/);assert.match(text,/Lin and Yamamoto \(129\)/);assert.match(text,/Highest period: Jan \(72\)/);
+  assert.match(text,/Brooks \(174\)/);assert.match(text,/Highest period: Jan \(72\)/);
+  assert.match(answer('Who has the lowest no-show counts in 2025?'),/Lin and Yamamoto \(129\)/);
 });
 
 test('collection ratios use summed amounts, rank before rounding, and do not invent payment timing',()=>{
