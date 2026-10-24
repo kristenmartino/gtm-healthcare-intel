@@ -1,3 +1,4 @@
+import QueryEvidence from "../QueryEvidence";
 import { useState, useRef, useEffect, useMemo } from "react";
 
 import { PRACTICE_DATA } from "../../lib/practice-scenario.mjs";
@@ -87,7 +88,7 @@ export default function AskPractice() {
         setMessages(prev => [...prev, { role: "assistant", text: errMsg }]);
       } else {
         const reply = data.content?.map(c => c.text || "").join("\n") || "I wasn't able to process that query. Please try rephrasing.";
-        setMessages(prev => [...prev, { role: "assistant", text: reply, source: data.source }]);
+        setMessages(prev => [...prev, { role: "assistant", text: reply, source: data.source, scope: data.appliedScope, calls: data.toolCalls }]);
       }
     } catch (err) {
       setMessages(prev => [...prev, { role: "assistant", text: "The practice calculation service could not be reached. Please try again. The synthetic practice summary remains available." }]);
@@ -152,15 +153,16 @@ export default function AskPractice() {
                 border: m.role === "user" ? "none" : "1px solid #1e293b",
                 fontSize: 13, lineHeight: 1.65, whiteSpace: "pre-wrap"
               }}>
-                {m.role === "assistant" && <div style={{ fontSize: 10, fontWeight: 700, color: "#34d399", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Scenario calculation</div>}
+                {m.role === "assistant" && <div style={{ fontSize: 10, fontWeight: 700, color: "#34d399", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>{m.source === "validated-query" ? "Calculated result" : m.source === "query-clarification" ? "Clarification needed" : "Service message"}</div>}
                 {m.text}
+                {m.role === "assistant" && <QueryEvidence scope={m.scope} calls={m.calls} />}
               </div>
             </div>
           ))}
           {loading && (
             <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 12 }}>
               <div style={{ padding: "12px 16px", borderRadius: "14px 14px 14px 4px", background: "#111b2e", border: "1px solid #1e293b", fontSize: 13, color: "#64748b" }}>
-                <span style={{ animation: "pulse 1.5s infinite" }}>Calculating practice measures...</span>
+                <span style={{ animation: "pulse 1.5s infinite" }}>Interpreting and calculating...</span>
               </div>
             </div>
           )}
@@ -201,7 +203,7 @@ export default function AskPractice() {
             </summary>
             <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 8, lineHeight: 1.7, padding: "12px 14px", background: "#0b1120", borderRadius: 8, border: "1px solid #1e293b" }}>
               <p style={{ margin: "0 0 8px" }}>
-                <strong style={{ color: "#e2e8f0" }}>Calculations:</strong> Every supported answer is calculated from the same synthetic records as the summary cards and revenue chart. Measures include revenue, collections, denial and no-show counts, patient counts, procedure counts, payer revenue/mix, average reimbursement, and the collections-to-revenue ratio. Provider filters and 2025 month, quarter, half-year, or inclusive month ranges are supported. Relative periods end in Dec 2025. Unknown scopes ask for clarification; no language model performs arithmetic or adds explanations to practice answers.
+                <strong style={{ color: "#e2e8f0" }}>Calculations:</strong> Claude translates the question into a structured query tool call; the server validates and calculates it from the same synthetic records as the summary cards and revenue chart. Measures include revenue, collections, denial and no-show counts, patient counts, procedure counts, payer revenue/mix, average reimbursement, and the collections-to-revenue ratio. Provider filters and 2025 month, quarter, half-year, or inclusive month ranges are supported. Relative periods end in Dec 2025. Numeric thresholds filter the calculated groups before ranking. Monthly and quarterly groupings are explicit, including rankings within each period. Unknown scopes ask for clarification; no model-written arithmetic is displayed. Inspect the applied query beneath each answer.
               </p>
               <p style={{ margin: "0 0 8px" }}>
                 <strong style={{ color: "#e2e8f0" }}>Definitions:</strong> Collections / revenue divides the summed amounts for the selected period; it is not an average of monthly rates. Average reimbursement is an unweighted mean of the supplied provider-month averages. Patient totals sum monthly counts and do not identify unique patients across months. Measures can be compared by provider and period. Payer data contains revenue only; procedure data contains counts only. Revenue by procedure and joint payer/procedure breakdowns are unavailable. Independent totals can be requested together without implying a link between them.

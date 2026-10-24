@@ -18,11 +18,13 @@
     "build": "next build",
     "start": "next start",
     "test": "node --test tests/*.test.mjs && cd data/pipeline && pytest -q",
-    "test:scenario": "node --test tests/*.test.mjs"
+    "test:scenario": "node --test tests/*.test.mjs",
+    "eval:queries": "node scripts/evaluate-query-tools.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
     "@vercel/analytics": "^2.0.1",
+    "ajv": "^8.20.0",
     "next": "^14.2.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
