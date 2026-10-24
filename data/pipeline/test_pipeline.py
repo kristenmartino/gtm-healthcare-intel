@@ -271,3 +271,22 @@ class TestOutputFiles:
                 data = json.load(f)
             assert isinstance(data, list), "JSON output should be a list"
             assert len(data) > 0, "JSON output should not be empty"
+
+
+def test_local_nppes_keeps_active_sole_proprietors_and_excludes_deactivated(tmp_path):
+    """Sole-proprietor status is not a retirement or inactivity indicator."""
+    pytest.importorskip("duckdb")
+    source = tmp_path / "providers.csv"
+    rows = pd.DataFrame({
+        "NPI": [1000000001, 1000000002, 1000000003],
+        "Provider Business Practice Location Address City Name": ["Miami"] * 3,
+        "Provider Business Practice Location Address State Name": ["FL"] * 3,
+        "Provider Business Practice Location Address Postal Code": ["33101"] * 3,
+        "Healthcare Provider Taxonomy Code_1": ["207N00000X"] * 3,
+        "Entity Type Code": ["1"] * 3,
+        "Is Sole Proprietor": ["Y", "N", "N"],
+        "NPI Deactivation Date": [None, "2025-01-01", None],
+    })
+    rows.to_csv(source, index=False)
+    result = load_nppes_data(str(source))
+    assert set(result["NPI"].astype(int)) == {1000000001, 1000000003}

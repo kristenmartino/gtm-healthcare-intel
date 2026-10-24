@@ -1,220 +1,94 @@
-"use client";
+import Link from "next/link";
+import { qbr, nrr, money, shortMoney, pct, CURRENT_QUARTER, PRIOR_QUARTER } from "../../lib/gtm-scenario.mjs";
+
+const { current, prior, reps, specialties, sources, churn } = qbr;
+const change = (now, before) => pct(now / before - 1);
+const pp = (now, before) => `${((now - before) * 100).toFixed(1)}pp`;
+const lastName = name => name.split(" ").at(-1);
+const slowest = [...reps].sort((a, b) => b.avgCycle - a.avgCycle)[0];
+const fastest = [...reps].sort((a, b) => a.avgCycle - b.avgCycle)[0];
+const derm = specialties.find(s => s.name === "Dermatology");
+const ortho = specialties.find(s => s.name === "Orthopedics");
+const referral = sources.find(s => s.name === "Referral");
+const paid = sources.find(s => s.name === "Paid");
+const metrics = [
+  ["Won ACV (bookings)", shortMoney(prior.bookings), shortMoney(current.bookings), change(current.bookings, prior.bookings)],
+  ["Bookings target", shortMoney(prior.target), shortMoney(current.target), change(current.target, prior.target)],
+  ["Attainment", pct(prior.bookings / prior.target), pct(current.bookings / current.target), pp(current.bookings / current.target, prior.bookings / prior.target)],
+  ["Won / closed opportunities", `${prior.wins} / ${prior.closed}`, `${current.wins} / ${current.closed}`, ""],
+  ["Mean won ACV", money(prior.avgACV), money(current.avgACV), change(current.avgACV, prior.avgACV)],
+  ["Closed-cohort win rate", pct(prior.winRate), pct(current.winRate), pp(current.winRate, prior.winRate)],
+  ["Mean won cycle (days)", prior.avgCycle.toFixed(1), current.avgCycle.toFixed(1), change(current.avgCycle, prior.avgCycle)],
+  ["Qualified pipeline at quarter end", shortMoney(prior.pipeline), shortMoney(current.pipeline), change(current.pipeline, prior.pipeline)],
+  ["Pipeline / full-quarter target", `${(prior.pipeline / prior.target).toFixed(2)}x`, `${(current.pipeline / current.target).toFixed(2)}x`, "Snapshot ratio; not a forecast"],
+];
 
 export default function Q1Review() {
   return (
-    <div style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", background: "#fafbfc", color: "#1a1a2e", minHeight: "100vh" }}>
-      {/* Document container */}
-      <div style={{ maxWidth: 780, margin: "0 auto", padding: "48px 32px", background: "#fff", minHeight: "100vh", boxShadow: "0 0 40px rgba(0,0,0,0.06)" }}>
-
-        {/* Header */}
-        <div style={{ borderBottom: "3px solid #1a1a2e", paddingBottom: 16, marginBottom: 32 }}>
-          <a href="/" style={{ fontSize: 12, fontWeight: 600, color: "#94a3b8", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 12 }}
-             onMouseEnter={e => e.currentTarget.style.color = "#64748b"}
-             onMouseLeave={e => e.currentTarget.style.color = "#94a3b8"}>
-            ← Portfolio
-          </a>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: 8 }}>GTM Analytics · Quarterly Business Review</div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 6px", letterSpacing: "-0.01em", lineHeight: 1.2 }}>Q1 2025 GTM Performance Review</h1>
-          <div style={{ fontSize: 13, color: "#64748b" }}>Prepared by Kristen Martino, GTM Analytics · April 7, 2025 · Confidential</div>
-        </div>
-
-        {/* Executive Summary */}
-        <Section title="Executive Summary">
-          <P>Q1 closed at $2.14M in new bookings against a $2.40M target (89% attainment). While topline bookings fell short, the underlying signals are more nuanced than the headline suggests. Win rate improved 3pp quarter-over-quarter to 24.1%, and average deal size increased 11% to $68K — both indicators that deal quality is strengthening even as volume is soft. The miss was driven primarily by three factors: a 12pp drop in Orthopedics win rate tied to legal review bottlenecks, lower-than-expected marketing-sourced pipeline conversion, and two enterprise deals ($185K combined) that slipped to Q2 due to budget approval delays.</P>
-          <P>The recommendations in this review focus on the highest-leverage interventions: implementing a legal escalation protocol for proposals aging beyond 10 days, tightening ICP scoring on paid marketing leads, and reallocating territory coverage toward Dermatology where win rates and ACV significantly outperform the portfolio average.</P>
+    <main className="qbr-page" style={{ background: "#f5f6f7", color: "#17232e", minHeight: "100vh" }}>
+      <article style={{ maxWidth: 960, margin: "0 auto", padding: "40px clamp(20px, 5vw, 48px) 64px", background: "#fff" }}>
+        <Link href="/" style={{ color: "#35635e", fontSize: 14 }}>← Portfolio</Link>
+        <header style={{ borderBottom: "2px solid #17232e", padding: "28px 0 24px", marginBottom: 28 }}>
+          <p style={{ color: "#35635e", fontWeight: 700, fontSize: 13 }}>Illustrative QBR · Synthetic data</p>
+          <h1 style={{ fontSize: "clamp(26px, 4vw, 38px)", lineHeight: 1.2, margin: "10px 0" }}>Q1 2025 GTM performance review</h1>
+          <P>Kristen Martino · Analysis exercise for a fictional specialty healthcare software company.</P>
+          <P>Tables and narrative use the same scenario records as <Link href="/askgtm">AskGTM</Link>. Values have been reconciled within this exercise; they are not company results or published industry benchmarks. Other portfolio tools use separate, labeled datasets.</P>
+        </header>
+        <Section title="What changed">
+          <P>Bookings were {shortMoney(current.bookings)} against a {shortMoney(current.target)} target ({pct(current.bookings / current.target)} attainment), a shortfall of {money(current.target - current.bookings)}. Bookings increased {change(current.bookings, prior.bookings)} from Q4, despite fewer wins: {current.wins} compared with {prior.wins}.</P>
+          <P>Mean won ACV rose {change(current.avgACV, prior.avgACV)}, from {money(prior.avgACV)} to {money(current.avgACV)}. Closed-cohort win rate increased {pp(current.winRate, prior.winRate)} to {pct(current.winRate)}. These changes describe the scenario; they do not establish why bookings missed target.</P>
         </Section>
-
-        {/* Pipeline Summary */}
-        <Section title="1. Pipeline & Bookings Summary">
-          <DataTable
-            headers={["Metric", "Q4 2024", "Q1 2025", "QoQ Change"]}
-            rows={[
-              ["Total Bookings", "$1.98M", "$2.14M", "+8.1%"],
-              ["Target", "$2.20M", "$2.40M", ""],
-              ["Attainment", "90%", "89%", "-1pp"],
-              ["Deals Closed Won", "34", "31", "-8.8%"],
-              ["Avg Deal Size (ACV)", "$58.2K", "$68.1K", "+17.0%"],
-              ["Win Rate (Qual → Won)", "21.3%", "24.1%", "+3pp"],
-              ["Avg Sales Cycle (days)", "52", "48", "-7.7%"],
-              ["Qualified Pipeline (EoQ)", "$6.8M", "$7.2M", "+5.9%"],
-              ["Pipeline Coverage Ratio", "2.8x", "3.0x", "+0.2x"],
-            ]}
-          />
-          <P><strong>Key takeaway:</strong> The bookings miss obscures improving fundamentals. Deal quality metrics (ACV, win rate, cycle time) are all trending positively. The volume gap is a sourcing issue, not an execution issue — we're converting pipeline at a higher rate but don't have enough of it at the top of the funnel.</P>
+        <Section title="1. Pipeline and bookings">
+          <DataTable headers={["Metric", PRIOR_QUARTER, CURRENT_QUARTER, "Change / note"]} rows={metrics} />
+          <P>Win rate uses closed won ÷ (closed won + closed lost). Mean ACV uses won ACV ÷ wins; cycle length is averaged across won deals. Pipeline is the open, qualified snapshot, separate from bookings. Coverage uses the full-quarter target shown here; it does not divide by remaining quota at quarter end.</P>
         </Section>
-
-        {/* Segment Performance */}
-        <Section title="2. Performance by Specialty Segment">
-          <DataTable
-            headers={["Specialty", "Deals Won", "Won ACV", "Win Rate", "Avg Cycle", "vs. Q4"]}
-            rows={[
-              ["Dermatology", "12", "$892K", "34.2%", "38d", "▲ +6pp"],
-              ["Gastroenterology", "8", "$498K", "26.1%", "44d", "▲ +2pp"],
-              ["Ophthalmology", "7", "$421K", "22.8%", "51d", "→ flat"],
-              ["Orthopedics", "4", "$329K", "14.3%", "62d", "▼ -12pp"],
-            ]}
-          />
-          <P><strong>Dermatology is the standout.</strong> At a 34.2% win rate with a 38-day average cycle, Derm practices are closing faster and at higher rates than any other segment. They also represent the highest ACV concentration ($892K on just 12 deals, averaging $74K per deal). Currently, only 2 of our 6 reps have significant Derm territory coverage — this represents a clear reallocation opportunity.</P>
-          <P><strong>Orthopedics requires immediate attention.</strong> Win rate dropped from 26.3% in Q4 to 14.3% in Q1. Root cause analysis shows this is not a product-market fit issue — it's a process bottleneck. Three of five lost Ortho deals had proposals stuck in legal review for 20+ days (median for Won deals is 6 days). When we exclude the legal-delayed losses, the adjusted Ortho win rate is 22.1% — in line with historical performance.</P>
-          <CalloutBox color="#dc2626" title="Action Required">
-            Implement escalation protocol for proposals in legal review &gt;10 days. Based on Q1 data, this intervention alone could recover an estimated $180K in quarterly pipeline that is being lost to process friction, not competitive loss.
-          </CalloutBox>
+        <Section title="2. Specialty performance">
+          <DataTable headers={["Specialty", "Won / closed", "Won ACV", "Win rate", "Mean ACV", "Mean cycle"]} rows={specialties.map(s => [s.name, `${s.wins} / ${s.closed}`, money(s.bookings), pct(s.winRate), money(s.avgACV), `${s.avgCycle.toFixed(1)}d`])} />
+          <P>Dermatology has a {pct(derm.winRate)} win rate in this sample, compared with {pct(ortho.winRate)} for Orthopedics. This makes Orthopedics a useful starting point for reviewing loss reasons, segment mix, and time in stage. The dataset has no legal-review timestamps or interview evidence, so it cannot identify legal delay as the cause.</P>
+          <Note title="Suggested check">Inspect comparable won and lost opportunities before changing territory coverage. A segment with a higher win rate may also have a different deal-size mix or qualification threshold.</Note>
         </Section>
-
-        {/* Source Analysis */}
-        <Section title="3. Pipeline Source & Marketing Attribution">
-          <DataTable
-            headers={["Source", "Leads", "Opps Created", "Pipeline $", "Won $", "Source Win Rate"]}
-            rows={[
-              ["Referral", "42", "28", "$1.9M", "$680K", "35.7%"],
-              ["Inbound Organic", "156", "34", "$2.1M", "$520K", "22.4%"],
-              ["Trade Show (HIMSS, AAD)", "68", "18", "$1.4M", "$410K", "27.8%"],
-              ["Outbound SDR", "234", "22", "$1.2M", "$340K", "18.2%"],
-              ["Paid (Search + Social)", "312", "14", "$0.6M", "$190K", "14.3%"],
-            ]}
-          />
-          <P><strong>Referrals continue to outperform every other channel</strong> with a 35.7% win rate and the highest ACV per deal. This is not surprising — referred prospects arrive with pre-existing trust and shorter evaluation cycles. What is notable is that we have no structured referral program in place. Even a modest program that increases referral volume by 20% would project to an additional $136K in quarterly bookings at current conversion rates.</P>
-          <P><strong>Paid channels are underperforming on conversion.</strong> Paid search and social generated the highest lead volume (312 leads) but the lowest win rate (14.3%) and smallest pipeline contribution ($600K). The issue is upstream: paid leads are converting to opportunity at 4.5% vs. 21.8% for inbound organic. ICP fit scoring on paid leads shows 62% of paid leads fall below our ideal customer profile threshold, compared to 28% for organic. We're generating volume, not quality.</P>
-          <CalloutBox color="#d97706" title="Recommendation">
-            Tighten paid campaign targeting criteria to match ICP scoring thresholds used for organic leads. Consider adding an SDR pre-qualification call before demo scheduling for all paid-sourced leads. Expected impact: 20-30% reduction in paid lead volume but 2x improvement in conversion rate, net positive on pipeline quality.
-          </CalloutBox>
+        <Section title="3. Source performance">
+          <DataTable headers={["Source", "Won / closed", "Won ACV", "Win rate", "Mean won ACV", "Open pipeline"]} rows={sources.map(s => [s.name, `${s.wins} / ${s.closed}`, money(s.bookings), pct(s.winRate), money(s.avgACV), money(s.pipeline)])} />
+          <P>Referrals closed {referral.wins} of {referral.closed} decided opportunities ({pct(referral.winRate)}); paid closed {paid.wins} of {paid.closed} ({pct(paid.winRate)}). These are closed cohorts, including opportunities created in earlier periods. They do not measure lead-to-opportunity conversion or prove channel quality caused the difference.</P>
+          <P>A referral pilot is worth testing. Keep the initial budget limited and measure incremental qualified opportunities, acquisition cost, and subsequent wins before increasing spend.</P>
         </Section>
-
-        {/* Rep Performance */}
-        <Section title="4. Rep Performance & Productivity">
-          <DataTable
-            headers={["Rep", "Quota", "Attainment", "Deals Won", "Avg ACV", "Avg Cycle", "Pipeline"]}
-            rows={[
-              ["Chen", "$450K", "112%", "8", "$63K", "41d", "$1.4M"],
-              ["Rivera", "$450K", "84%", "6", "$63K", "52d", "$980K"],
-              ["Okafor", "$400K", "95%", "6", "$63K", "44d", "$1.1M"],
-              ["Patel", "$350K", "78%", "4", "$68K", "58d", "$720K"],
-              ["Wong", "$400K", "89%", "5", "$71K", "46d", "$1.0M"],
-              ["Kim", "$350K", "81%", "2", "$142K", "68d", "$1.2M"],
-            ]}
-          />
-          <P><strong>Chen</strong> is the top performer at 112% attainment, driven by volume (8 deals) and the shortest average cycle (41 days). Her approach of front-loading demos early in the evaluation process is working — she averages 2.3 demos per closed deal vs. 3.1 for the team.</P>
-          <P><strong>Kim</strong> presents an interesting case: lowest deal count (2) but highest ACV ($142K) and the most open pipeline ($1.2M). He's working larger enterprise deals with longer cycles. His 81% attainment is misleading — one of his two slipped Q2 deals ($110K) would have put him at 112%. His pipeline suggests a strong Q2.</P>
-          <P><strong>Patel</strong> is below target at 78% with the longest average cycle (58 days). Diagnostic: 60% of his pipeline is Orthopedics, which is the segment hit hardest by the legal bottleneck. Adjusting for legal-delayed losses, his projected attainment would be ~92%. The issue is segment concentration, not rep performance.</P>
+        <Section title="4. Rep performance">
+          <DataTable headers={["Rep", "Quota", "Won ACV", "Attainment", "Wins", "Mean ACV", "Mean cycle"]} rows={reps.map(r => [lastName(r.name), money(r.quota), money(r.bookings), pct(r.bookings / r.quota), r.wins, money(r.avgACV), `${r.avgCycle.toFixed(1)}d`])} />
+          <P>{lastName(slowest.name)} has the longest mean won cycle at {slowest.avgCycle.toFixed(0)} days across {slowest.wins} wins, and the largest mean won ACV at {money(slowest.avgACV)}. {lastName(fastest.name)} has the shortest cycle at {fastest.avgCycle.toFixed(0)} days across {fastest.wins} wins. The small samples and different deal sizes limit comparisons; neither proves rep effectiveness or poor qualification.</P>
         </Section>
-
-        {/* Churn */}
-        <Section title="5. Retention & Net Revenue Retention">
-          <DataTable
-            headers={["Specialty", "Customers (Start)", "Churned", "Expanded", "Churn Rate", "NRR"]}
-            rows={[
-              ["Dermatology", "248", "8", "32", "3.2%", "112.4%"],
-              ["Orthopedics", "186", "14", "18", "7.5%", "103.8%"],
-              ["Gastroenterology", "142", "6", "22", "4.2%", "110.1%"],
-              ["Ophthalmology", "210", "11", "28", "5.2%", "108.6%"],
-            ]}
-          />
-          <P><strong>Blended NRR is 108.7%</strong> — our installed base is growing. However, the spread between specialties is significant. Dermatology NRR at 112.4% with only 3.2% churn is exceptional and reinforces the segment's attractiveness. Orthopedics churn at 7.5% is the outlier and warrants investigation. Exit survey data indicates "switched to competitor" as the primary reason (64% of churned Ortho accounts), suggesting product-competitive gaps in the orthopedic workflow specifically.</P>
-          <CalloutBox color="#6366f1" title="Strategic Note">
-            Dermatology is now the clear priority segment across every metric: highest win rate, highest NRR, lowest churn, fastest cycle, and strongest ACV. The Q2 GTM plan should reflect this by reallocating territory coverage, directing marketing spend, and prioritizing product roadmap investment toward Derm practices.
-          </CalloutBox>
+        <Section title="5. Retention">
+          <DataTable headers={["Specialty", "Start customers", "Churned", "Customer churn", "Prior cohort revenue", "Current cohort revenue", "NRR"]} rows={churn.map(c => [c.specialty, c.customersStart, c.churned, pct(c.churned / c.customersStart), money(c.priorRevenue), money(c.currentRevenue), pct(c.currentRevenue / c.priorRevenue)])} />
+          <P>Revenue-weighted NRR is {pct(nrr)}: {money(churn.reduce((s, c) => s + c.currentRevenue, 0))} divided by {money(churn.reduce((s, c) => s + c.priorRevenue, 0))} for the same starting cohort. New customers are excluded and churned accounts remain in the denominator. Customer churn and revenue retention use different denominators.</P>
+          <P>Orthopedics has the highest customer churn rate in this scenario. Review cancellation reasons and account size before attributing that churn to competitive or product gaps; no exit-survey evidence is included.</P>
         </Section>
-
-        {/* Recommendations */}
-        <Section title="6. Q2 Recommendations">
-          <div style={{ display: "grid", gap: 12, marginTop: 8 }}>
-            {[
-              { priority: "P0", title: "Legal escalation protocol", detail: "Implement 10-day SLA for proposal legal review with automatic escalation to VP Legal. Expected recovery: $180K/quarter in Orthopedics pipeline alone.", impact: "$180K/q", timeline: "2 weeks" },
-              { priority: "P0", title: "Territory reallocation toward Dermatology", detail: "Move 1-2 reps from general territory to Dermatology-focused. Model shows +$420K quarterly bookings at current conversion rates. Chen should mentor the transitioning reps given her Derm track record.", impact: "$420K/q", timeline: "Start of Q2" },
-              { priority: "P1", title: "Paid campaign ICP tightening", detail: "Raise ICP score threshold for paid leads from 45 to 60. Add SDR pre-qualification for all paid-sourced demos. Accept lower lead volume in exchange for higher conversion.", impact: "+2x conversion", timeline: "2 weeks" },
-              { priority: "P1", title: "Structured referral program", detail: "Launch formal referral program with incentive structure. Referrals convert at 35.7% vs. 14.3% for paid. Even 20% volume increase = $136K incremental quarterly bookings.", impact: "$136K/q", timeline: "4 weeks" },
-              { priority: "P2", title: "Ortho competitive analysis", detail: "7.5% churn rate with 'switched to competitor' as primary driver. Conduct win/loss interviews on 5 most recent Ortho churns. Feed findings to Product for roadmap prioritization.", impact: "Reduce churn 2-3pp", timeline: "6 weeks" },
-              { priority: "P2", title: "Forecast methodology upgrade", detail: "Current weighted pipeline forecast relies on static stage probabilities. Implement deal-level scoring incorporating days-in-stage, engagement recency, and segment-specific conversion rates. Target: forecast accuracy within ±10%.", impact: "Better planning", timeline: "Q2" },
-            ].map((rec, i) => (
-              <div key={i} style={{ display: "grid", gridTemplateColumns: "50px 1fr 80px 80px", gap: 12, padding: "12px 16px", borderRadius: 8, background: rec.priority === "P0" ? "#fef2f2" : rec.priority === "P1" ? "#fffbeb" : "#f0f9ff", border: `1px solid ${rec.priority === "P0" ? "#fecaca" : rec.priority === "P1" ? "#fde68a" : "#bae6fd"}`, alignItems: "start" }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: rec.priority === "P0" ? "#dc2626" : rec.priority === "P1" ? "#d97706" : "#2563eb", background: rec.priority === "P0" ? "#fee2e2" : rec.priority === "P1" ? "#fef3c7" : "#e0f2fe", padding: "2px 8px", borderRadius: 4, textAlign: "center" }}>{rec.priority}</span>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>{rec.title}</div>
-                  <div style={{ fontSize: 12.5, color: "#475569", lineHeight: 1.55 }}>{rec.detail}</div>
-                </div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", textAlign: "right" }}>{rec.impact}</div>
-                <div style={{ fontSize: 11, color: "#64748b", textAlign: "right" }}>{rec.timeline}</div>
-              </div>
-            ))}
-          </div>
+        <Section title="6. Q2 investigation plan">
+          <DataTable headers={["Sequence", "Action", "Evidence needed before expansion"]} rows={[
+            ["Weeks 1–2", "Review Orthopedics losses and proposal aging", "Loss interviews and legal-review timestamps; test a review SLA if delays recur"],
+            ["Weeks 2–4", "Pilot a referral program with a capped budget", "Incremental qualified opportunities, acquisition cost, and wins"],
+            ["Weeks 2–4", "Compare paid and referral cohorts", "Comparable deal sizes, qualification rules, and cohort maturity"],
+            ["Week 6", "Review pilot results before territory changes", "Observed conversion and capacity; retain a comparison cohort"],
+          ]} />
+          <P>These are proposed investigations. There is no validated incremental bookings forecast, staffing recommendation, or guaranteed churn reduction.</P>
         </Section>
-
-        {/* Q2 GTM Plan — synthesis of the recommendations into sequencing and strategic intent */}
-        <Section title="7. Q2 GTM Plan — Sequencing & Strategic Bet">
-          <P>
-            If I were running Q2, the sequencing matters as much as the actions. <strong>Week 1:</strong> ship the legal-escalation SLA. It is the highest-leverage zero-cost intervention and unlocks ~$180K of stranded Ortho pipeline immediately; nothing else here pays back faster. <strong>Week 2:</strong> reallocate one rep from general-territory coverage to Dermatology, with Chen mentoring the transition — her 41-day cycle and 8-deal quarter are the evidence base, and her demos-per-close ratio of 2.3 vs. the team's 3.1 is a teachable pattern. <strong>Week 4:</strong> launch the structured referral program. Referrals close at 35.7% vs. 14.3% for paid; we need to start refilling top-of-funnel with the channel that actually converts before paid-campaign ICP tightening reduces volume.
-          </P>
-          <P>
-            <strong>The bigger strategic bet:</strong> moving from "we serve all four specialties equally" to "we are the specialty EHR with the best Dermatology workflow in the market, and we win there." Every Q1 metric points the same direction — 34.2% Derm win rate, 112.4% NRR, 3.2% churn, $74K average ACV. The concentration risk is real: a credible Derm-focused entrant in the next 12 months turns our positioning from moat into vulnerability. We mitigate by feeding Ortho win/loss interview findings (P2) directly into the Product roadmap as soon as they land, closing the back door while we double down on the front one.
-          </P>
-          <P>
-            <strong>Pipeline coverage target for Q2:</strong> 3.5x against quota (up from 3.0x). Hitting that requires either growing top-of-funnel ~17% or improving conversion at the same volume. The four P0/P1 recommendations are designed to do both — referrals and paid ICP tightening lift top-of-funnel quality; legal SLA and territory reallocation lift conversion. If all four execute on schedule, the model projects $2.5–2.7M in Q2 bookings (vs. the $2.40M target) and exits Q2 with $8.4M in qualified pipeline.
-          </P>
-          <CalloutBox color="#10b981" title="Q2 Commitments">
-            Two non-negotiables: legal-escalation SLA in week 1, and Derm reallocation by end of week 2. Referral program and paid ICP tightening as P1s with measurable check-ins at week 6. The bigger Dermatology strategic bet is a 4-quarter horizon — Q2 is when we start; Q4 is when we know if it worked.
-          </CalloutBox>
+        <Section title="7. Scenario arithmetic">
+          <P>The following calculations illustrate sensitivity to explicit assumptions. They are not predictions, and they should not be added together because the opportunities could overlap.</P>
+          <DataTable headers={["Scenario", "Calculation", "Illustrative result"]} rows={[
+            ["20% more referral wins at the same average ACV", `${referral.wins} wins × 20% × ${money(referral.avgACV)}`, money(referral.bookings * 0.2)],
+            ["Recover part of an assumed delayed pipeline", "$180,000 assumed delayed ACV × 30% assumed close rate", money(180000 * 0.3)],
+            ["Raise pipeline / full-quarter target from 3.0x to 3.5x", `${shortMoney(current.target)} × 3.5; compared with ${shortMoney(current.pipeline)} today`, `${shortMoney(current.target * 3.5)} pipeline needed`],
+          ]} />
+          <P>The delayed-pipeline amount and close rate are scenario inputs, not measured fields. The coverage scenario needs {money(current.target * 3.5 - current.pipeline)} more qualified pipeline ({pct(current.target * 3.5 / current.pipeline - 1)} growth). Higher conversion may increase bookings, but does not itself increase this pipeline-to-target ratio.</P>
         </Section>
-
-        {/* Footer */}
-        <div style={{ borderTop: "2px solid #e2e8f0", paddingTop: 16, marginTop: 40, fontSize: 11, color: "#94a3b8", lineHeight: 1.6 }}>
-          <strong>Data Sources:</strong> Synthetic Salesforce Opportunity, Lead, and Account data. Marketing metrics from synthetic HubSpot + Salesforce integration. Churn data from synthetic billing system. All figures are illustrative and modeled on realistic SaaS GTM benchmarks — not derived from any company's actual data.
-        </div>
-        <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 8 }}>
-          <strong>Methodology:</strong> Win rate calculated as Closed Won / (Closed Won + Closed Lost) for opportunities reaching Stage 2+ with ACV ≥ $5K. NRR calculated as (Current Period Revenue from Existing Customers) / (Prior Period Revenue from Same Cohort). Pipeline coverage = Qualified Pipeline / Remaining Quota. Full SQL definitions available at <span style={{ color: "#2563eb" }}>/methodology</span>.
-        </div>
-      </div>
-    </div>
+        <footer style={{ borderTop: "1px solid #ccd5dc", paddingTop: 20, color: "#4b5d69", fontSize: 13, lineHeight: 1.7 }}>
+          Source: deterministic synthetic opportunity and retention records shared with AskGTM. Rounded displays may not sum exactly; calculations use unrounded values. <Link href="/methodology">View example SQL and metric assumptions</Link>.
+        </footer>
+      </article>
+    </main>
   );
 }
-
-function Section({ title, children }) {
-  return (
-    <div style={{ marginBottom: 32 }}>
-      <h2 style={{ fontSize: 18, fontWeight: 800, color: "#1a1a2e", margin: "0 0 12px", paddingBottom: 6, borderBottom: "1px solid #e2e8f0" }}>{title}</h2>
-      {children}
-    </div>
-  );
-}
-
-function P({ children }) {
-  return <p style={{ fontSize: 13.5, lineHeight: 1.75, color: "#334155", margin: "0 0 12px" }}>{children}</p>;
-}
-
-function CalloutBox({ color, title, children }) {
-  return (
-    <div style={{ borderLeft: `4px solid ${color}`, background: color + "08", padding: "12px 16px", borderRadius: "0 8px 8px 0", margin: "16px 0" }}>
-      <div style={{ fontSize: 12, fontWeight: 800, color, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>{title}</div>
-      <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.6 }}>{children}</div>
-    </div>
-  );
-}
-
+function Section({ title, children }) { return <section style={{ marginBottom: 32 }}><h2 style={{ fontSize: 21, marginBottom: 12, fontWeight: 650 }}>{title}</h2>{children}</section>; }
+function P({ children }) { return <p style={{ fontSize: 15, lineHeight: 1.75, marginBottom: 12 }}>{children}</p>; }
+function Note({ title, children }) { return <aside style={{ borderLeft: "3px solid #35635e", background: "#f1f6f5", padding: 16, lineHeight: 1.7, marginTop: 16 }}><strong>{title}. </strong>{children}</aside>; }
 function DataTable({ headers, rows }) {
-  return (
-    <div style={{ overflowX: "auto", margin: "12px 0 16px" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
-        <thead>
-          <tr>
-            {headers.map(h => (
-              <th key={h} style={{ padding: "8px 10px", textAlign: "right", fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", color: "#64748b", borderBottom: "2px solid #1a1a2e", whiteSpace: "nowrap" }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, i) => (
-            <tr key={i} style={{ background: i % 2 === 0 ? "#f8fafc" : "#fff" }}>
-              {row.map((cell, j) => (
-                <td key={j} style={{
-                  padding: "8px 10px", textAlign: "right", borderBottom: "1px solid #e2e8f0",
-                  fontWeight: j === 0 ? 600 : 400,
-                  color: typeof cell === "string" && cell.startsWith("▼") ? "#dc2626" : typeof cell === "string" && cell.startsWith("▲") ? "#10b981" : "#334155",
-                  whiteSpace: "nowrap",
-                }}>{cell}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+  return <div role="region" aria-label={headers.join(", ")} tabIndex={0} style={{ overflowX: "auto", margin: "14px 0 18px" }}><table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}><thead><tr>{headers.map((h, i) => <th key={h} scope="col" style={{ padding: "10px 12px", textAlign: i ? "right" : "left", borderBottom: "2px solid #526570", color: "#3d535e" }}>{h}</th>)}</tr></thead><tbody>{rows.map((row, i) => <tr key={i} style={{ background: i % 2 ? "#fff" : "#f5f7f8" }}>{row.map((cell, j) => <td key={j} style={{ padding: "10px 12px", textAlign: j ? "right" : "left", borderBottom: "1px solid #dde4e8", fontVariantNumeric: "tabular-nums", whiteSpace: j ? "nowrap" : "normal" }}>{cell}</td>)}</tr>)}</tbody></table></div>;
 }

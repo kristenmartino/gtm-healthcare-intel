@@ -196,11 +196,11 @@ function generateAdoption() {
 const ADOPTION_DATA = generateAdoption();
 
 const SPREADSHEET_RISKS = [
-  { team: "Sales — East", file: "Q1_pipeline_tracker.xlsx", lastEdited: "2 days ago", risk: "high", conflict: "Pipeline numbers diverge from Salesforce by $340K" },
-  { team: "Sales — West", file: "My_deals_2025.xlsx", lastEdited: "today", risk: "high", conflict: "Includes verbal commits not in CRM" },
-  { team: "Marketing", file: "campaign_leads_backup.csv", lastEdited: "5 days ago", risk: "medium", conflict: "Lead counts differ from HubSpot by 12%" },
-  { team: "CS", file: "renewal_tracker_v3_FINAL2.xlsx", lastEdited: "1 day ago", risk: "high", conflict: "Churn dates don't match billing system" },
-  { team: "Finance", file: "monthly_bookings_reconcile.xlsx", lastEdited: "3 days ago", risk: "medium", conflict: "Uses different ACV calc than standard" },
+  { team: "Sales — East", file: "Q1_pipeline_tracker.xlsx", lastEdited: "Scenario week 10", risk: "high", conflict: "Pipeline numbers diverge from Salesforce by $340K" },
+  { team: "Sales — West", file: "My_deals_2025.xlsx", lastEdited: "Scenario week 12", risk: "high", conflict: "Includes verbal commits not in CRM" },
+  { team: "Marketing", file: "campaign_leads_backup.csv", lastEdited: "Scenario week 9", risk: "medium", conflict: "Lead counts differ from HubSpot by 12%" },
+  { team: "CS", file: "renewal_tracker_v3_FINAL2.xlsx", lastEdited: "Scenario week 11", risk: "high", conflict: "Churn dates don't match billing system" },
+  { team: "Finance", file: "monthly_bookings_reconcile.xlsx", lastEdited: "Scenario week 10", risk: "medium", conflict: "Uses different ACV calc than standard" },
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -217,14 +217,14 @@ const MATURITY_LEVELS = [
   },
   {
     level: 2, name: "Diagnostic", label: "Why did it happen?", color: "#f59e0b",
-    description: "Root cause analysis connecting outcomes to drivers. Segmentation and cohort analysis.",
+    description: "Segment and cohort comparisons that help form hypotheses about changes.",
     examples: ["Win rate by source + specialty", "Funnel drop-off analysis", "Churn driver segmentation"],
     infra: ["Centralized data warehouse", "Standardized metric definitions", "Self-serve BI access"],
     org: ["Metric governance council", "Single source of truth", "Regular data reviews"],
     current: true, partial: true,
   },
   {
-    level: 3, name: "Predictive", label: "What will happen?", color: "#38bdf8",
+    level: 3, name: "Predictive", label: "What might happen?", color: "#38bdf8",
     description: "Forward-looking models that forecast outcomes based on current signals.",
     examples: ["Weighted pipeline forecast", "Churn propensity scoring", "Deal velocity prediction"],
     infra: ["ML pipeline infrastructure", "Feature store", "Model monitoring"],
@@ -236,7 +236,7 @@ const MATURITY_LEVELS = [
     description: "Automated recommendations and actions based on data patterns and anomalies.",
     examples: ["AI-generated deal coaching", "Auto-prioritized lead routing", "Dynamic territory rebalancing"],
     infra: ["Real-time data streams", "Recommendation engine", "Action triggers / workflows"],
-    org: ["Trust in automated insights", "Feedback loops", "Continuous optimization culture"],
+    org: ["Review of model outputs", "Feedback loops", "Measured follow-up results"],
     current: false,
   },
 ];
@@ -337,8 +337,7 @@ function generateMetricTimeSeries() {
 
 function detectAnomalies(series) {
   const alerts = [];
-  const now = ["2 hours ago", "4 hours ago", "6 hours ago", "1 day ago", "1 day ago", "2 days ago"];
-  let timeIdx = 0;
+
 
   Object.entries(series).forEach(([key, s]) => {
     const vals = s.values;
@@ -349,7 +348,8 @@ function detectAnomalies(series) {
     const baseline = vals.slice(0, -1);
     const current = vals[n - 1];
     const mean = baseline.reduce((a, b) => a + b, 0) / baseline.length;
-    const std = Math.sqrt(baseline.reduce((a, v) => a + (v - mean) ** 2, 0) / baseline.length) || 1;
+    const std = Math.sqrt(baseline.reduce((a, v) => a + (v - mean) ** 2, 0) / (baseline.length - 1));
+    if (std === 0) return;
     const zScore = (current - mean) / std;
     const deviation = current - mean;
     const deviationPct = ((current - mean) / mean * 100);
@@ -375,9 +375,9 @@ function detectAnomalies(series) {
 
     if (metricName === "Win Rate" && isBad) {
       title = `${segment} win rate dropped ${Math.abs(deviation).toFixed(1)}pp below rolling average`;
-      insight = `Current: ${current}${s.unit} vs. ${mean.toFixed(1)}${s.unit} trailing avg (z-score: ${zScore.toFixed(2)}). This ${Math.abs(zScore) > 2 ? "significant" : "notable"} deviation suggests a systemic issue beyond normal variance.`;
+      insight = `Current: ${current}${s.unit} vs. ${mean.toFixed(1)}${s.unit} trailing avg (z-score: ${zScore.toFixed(2)}). This exceeds the illustrative alert threshold; it does not identify a cause or prove a systemic change.`;
       recommendation = segment === "Orthopedics"
-        ? `Investigate deal-level loss reasons for ${segment}. Prior analysis suggests legal review bottlenecks — check if proposals in legal review > 10 days correlate with recent losses.`
+        ? `Investigate deal-level loss reasons for ${segment}. No loss reasons or legal-review timestamps are included. Collect those fields before testing a process-delay hypothesis.`
         : `Review recent ${segment} losses for pattern: competitor displacement, pricing objection, or process friction. Schedule win/loss interviews on the 3 most recent losses.`;
     } else if (metricName === "Win Rate" && isGood) {
       title = `${segment} win rate up ${deviation.toFixed(1)}pp — outperforming portfolio`;
@@ -389,20 +389,20 @@ function detectAnomalies(series) {
       recommendation = `Cross-reference with conversion rate for ${segment}-sourced deals. If conversion is flat or declining despite volume increase, tighten qualification criteria.`;
     } else if (metricName === "Shadow Spreadsheets" && !isNegative) {
       title = `Shadow spreadsheet activity spiked to ${current} edits (${deviationPct.toFixed(0)}% above avg)`;
-      insight = `${current} edits this week vs. ${mean.toFixed(0)} weekly average. This reversal in the downward adoption trend suggests a trust or usability issue with standardized reports.`;
+      insight = `${current} edits this week vs. ${mean.toFixed(0)} weekly average. The example tracks edit counts, not the reasons for edits. Check whether report access, data freshness, or missing fields explain the change.`;
       recommendation = `Schedule data trust check-in with Sales team leads. Identify which specific reports are being bypassed and why. Common causes: stale data, missing fields, or reports that don't answer daily workflow questions.`;
     } else if (metricName === "Adoption" && isBad) {
       title = `${segment} reporting adoption dropped ${Math.abs(deviation).toFixed(0)}pp`;
-      insight = `Adoption fell to ${current}${s.unit} from ${mean.toFixed(0)}${s.unit} trailing average. This coincides with increased shadow spreadsheet activity.`;
+      insight = `Adoption fell to ${current}${s.unit} from ${mean.toFixed(0)}${s.unit} trailing average. Other simulated signals are not evidence of the cause.`;
       recommendation = `Investigate root cause: data freshness issue, broken report, or organizational change? Run report-level engagement analysis to identify which specific dashboards lost usage.`;
     } else if (metricName === "NRR" && isGood) {
       title = `${segment} NRR trending up to ${current}${s.unit}`;
-      insight = `NRR at ${current}${s.unit} vs. ${mean.toFixed(1)}${s.unit} baseline. Expansion revenue in ${segment} is outpacing contraction and churn.`;
+      insight = `NRR at ${current}${s.unit} vs. ${mean.toFixed(1)}${s.unit} baseline. Revenue from the starting cohort exceeds its prior-period revenue; the series does not identify the expansion mechanism.`;
       recommendation = `Analyze expansion drivers: is this upsell, cross-sell, or seat expansion? If repeatable, document the playbook and test it in lower-NRR segments.`;
     } else {
       title = `${metricName} ${segment}: ${isNegative ? "below" : "above"} expected range`;
       insight = `Current: ${current}${s.unit} vs. ${mean.toFixed(1)}${s.unit} avg (${deviationPct > 0 ? "+" : ""}${deviationPct.toFixed(1)}%, z=${zScore.toFixed(2)}).`;
-      recommendation = `Investigate deviation cause. Check for data quality issues before actioning.`;
+      recommendation = `Check source completeness and cohort size, then review underlying records before choosing an action.`;
     }
 
     alerts.push({
@@ -415,9 +415,9 @@ function detectAnomalies(series) {
       current,
       mean: Math.round(mean * 10) / 10,
       zScore: Math.round(zScore * 100) / 100,
-      timestamp: now[timeIdx % now.length],
+      timestamp: `Scenario ${n === 4 ? "month" : "week"} ${n}`,
+      unit: s.unit,
     });
-    timeIdx++;
   });
 
   // Sort: critical first, then warning, then opportunity
@@ -492,11 +492,11 @@ export default function NorthStar() {
     { key: "registry", label: "Metric Registry", icon: "◎" },
     { key: "adoption", label: "Adoption Tracker", icon: "◈" },
     { key: "maturity", label: "Maturity Model", icon: "◇" },
-    { key: "prescriptive", label: "Prescriptive Alerts", icon: "◆" },
+    { key: "prescriptive", label: "Example Alerts", icon: "◆" },
   ];
 
   return (
-    <div style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", background: "#0b1120", color: "#e2e8f0", minHeight: "100vh" }}>
+    <div className="demo-page" style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", background: "#0b1120", color: "#e2e8f0", minHeight: "100vh" }}>
       {/* Header */}
       <div style={{ padding: "28px 32px 0", maxWidth: 1140, margin: "0 auto" }}>
         <a href="/" style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 12 }}
@@ -505,14 +505,14 @@ export default function NorthStar() {
           ← Portfolio
         </a>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg, #f59e0b, #10b981)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, fontWeight: 800, color: "#0b1120" }}>N</div>
+
           <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#fbbf24" }}>NorthStar</span>
         </div>
-        <h1 style={{ fontSize: 26, fontWeight: 800, margin: "8px 0 4px", letterSpacing: "-0.01em" }}>GTM Analytics Governance & Maturity</h1>
-        <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 20px" }}>Metric standardization · Reporting adoption · Descriptive → Prescriptive maturity roadmap</p>
+        <h1 style={{ fontSize: 26, fontWeight: 800, margin: "8px 0 4px", letterSpacing: "-0.01em" }}>Metric definitions and reporting adoption</h1>
+        <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 20px" }}>Synthetic governance exercise · Example metric policies, adoption snapshots, and statistical alerts</p>
 
         {/* KPI strip */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginBottom: 20 }}>
           {[
             { label: "Metrics Defined", value: METRIC_REGISTRY.length, sub: `${resolvedCount} resolved, ${disputedCount} disputed`, color: "#38bdf8" },
             { label: "Avg Data Quality", value: `${Math.round(METRIC_REGISTRY.reduce((a, m) => a + m.qualityScore, 0) / METRIC_REGISTRY.length)}%`, color: "#10b981" },
@@ -662,9 +662,9 @@ export default function NorthStar() {
 
             {/* Spreadsheet risk monitor */}
             <div style={{ background: "#111b2e", borderRadius: 10, padding: 20, border: "1px solid #ef444430" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#ef4444", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Shadow Spreadsheet Risk Monitor</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#ef4444", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Example spreadsheet conflicts</div>
               <p style={{ fontSize: 12, color: "#64748b", marginBottom: 14, lineHeight: 1.5 }}>
-                Tracking known ad-hoc files maintained outside the standardized reporting stack. These represent data integrity risks and adoption gaps.
+                Invented files illustrate how parallel reporting can create conflicting definitions. No files or report usage are being monitored.
               </p>
               <div style={{ display: "grid", gap: 8 }}>
                 {SPREADSHEET_RISKS.map((s, i) => (
@@ -740,7 +740,7 @@ export default function NorthStar() {
             <div style={{ marginTop: 16, padding: 16, background: "#111b2e", borderRadius: 10, border: "1px solid #1e293b" }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: "#fbbf24", marginBottom: 6 }}>The Path Forward</div>
               <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.7, margin: 0 }}>
-                Most GTM analytics teams operate primarily at Level 1 (Descriptive) with pockets of Level 2 (Diagnostic). The roadmap to prescriptive analytics isn't just a technology challenge — it requires metric governance (so people trust the data), adoption infrastructure (so people actually use the reports), and organizational readiness (so people act on recommendations). Each maturity level builds on the one before it. Skipping straight to prescriptive without solving standardization and adoption first creates AI recommendations that nobody trusts.
+                This model groups examples by the questions they address. It is an organizing aid, not an assessment of a real organization. The metric registry, adoption data, and suggested actions are independent synthetic examples.
               </p>
             </div>
           </div>
@@ -752,11 +752,11 @@ export default function NorthStar() {
             <div style={{ marginBottom: 16, padding: 14, background: "#111b2e", borderRadius: 10, border: "1px solid #1e293b" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <p style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6, margin: 0, flex: 1 }}>
-                  These alerts are <strong style={{ color: "#10b981" }}>dynamically generated</strong> by an anomaly detection engine that computes rolling mean ± 1.5σ across metric time-series data. Each alert includes the z-score that triggered it, a templated root cause insight, and a prescriptive recommendation.
+                  These example alerts compare the last synthetic period with the mean and sample standard deviation of earlier periods. A deviation beyond 1.5 standard deviations triggers an alert. Suggested investigations are templates; causes have not been established.
                 </p>
                 <div style={{ textAlign: "right", marginLeft: 20, flexShrink: 0 }}>
                   <div style={{ fontSize: 22, fontWeight: 800, color: "#fbbf24" }}>{ALERTS.length}</div>
-                  <div style={{ fontSize: 10, color: "#475569" }}>active alerts</div>
+                  <div style={{ fontSize: 10, color: "#475569" }}>example alerts</div>
                 </div>
               </div>
             </div>
@@ -780,7 +780,7 @@ export default function NorthStar() {
                       z = {a.zScore > 0 ? "+" : ""}{a.zScore}
                     </span>
                     <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 4, background: "#1e293b", color: "#64748b" }}>
-                      {a.segment} · current: {a.current}{a.metric === "Pipeline" ? "K" : "%"} · avg: {a.mean}{a.metric === "Pipeline" ? "K" : "%"}
+                      {a.segment} · current: {a.current}{a.unit === "$K" ? "K" : a.unit === "edits" ? " edits" : a.unit} · avg: {a.mean}{a.unit === "$K" ? "K" : a.unit === "edits" ? " edits" : a.unit}
                     </span>
                     <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 4, background: "#6366f118", color: "#a78bfa" }}>
                       rolling window detection
@@ -805,7 +805,7 @@ export default function NorthStar() {
             <div style={{ marginTop: 16, padding: 14, background: "#111b2e", borderRadius: 8, border: "1px solid #1e293b" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: "#a78bfa", marginBottom: 4 }}>Detection Methodology</div>
               <p style={{ fontSize: 11, color: "#475569", lineHeight: 1.6, margin: 0 }}>
-                Anomalies detected via rolling-window z-score analysis: for each metric × segment, the baseline is computed from all prior-period values (mean and σ). The current period value is compared against baseline — any deviation exceeding ±1.5σ triggers an alert. Severity is assigned by z-score magnitude: |z| &gt; 2.5 = critical, negative deviations on health metrics = warning, positive deviations = opportunity. Insight text and recommendations are template-generated based on the metric type, segment, and deviation direction. In production, this engine would run on a scheduled cadence against the data warehouse with alert routing to Slack channels by team.
+                Each series compares its last observation with all preceding observations using a sample standard deviation. The threshold is |z| ≥ 1.5. Some monthly baselines contain only three observations, so scores can be unstable; this is not a calibrated significance test. Series include deliberately injected changes. Severity labels and investigation text are illustrative rules. Nothing runs on a live schedule or sends notifications.
               </p>
             </div>
           </div>
@@ -814,7 +814,7 @@ export default function NorthStar() {
         {/* Footer */}
         <div style={{ marginTop: 24, padding: 16, background: "#111b2e", borderRadius: 10, border: "1px solid #1e293b" }}>
           <p style={{ fontSize: 11, color: "#475569", lineHeight: 1.6, margin: 0 }}>
-            <strong>About NorthStar:</strong> This project demonstrates the operational infrastructure required to make a GTM analytics function effective — not just the dashboards, but the governance, adoption, and maturity frameworks underneath them. All data is synthetic. Metric definitions are modeled on common Salesforce + HubSpot GTM data architectures. Prescriptive alerts are dynamically generated by an anomaly detection engine using rolling-window z-score analysis on metric time-series data — not hardcoded.
+            <strong>About this exercise:</strong> Metric definitions, data-quality ratings, adoption percentages, and spreadsheet conflicts are scenario inputs. Alert values are calculated from generated series, with predefined investigation templates. The portfolio demonstrates the proposed workflow; it does not measure a real team or operate a governance platform.
           </p>
         </div>
       </div>

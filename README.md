@@ -1,6 +1,6 @@
 # GTM Healthcare Intelligence
 
-Interactive analytics portfolio demonstrating go-to-market business intelligence for the specialty healthcare EHR space.
+Interactive GTM analytics exercises for specialty healthcare software. All scenarios are synthetic; source references do not imply a live connection.
 
 **Live:** [gtm.kristenmartino.ai](https://gtm.kristenmartino.ai)
 **Built by** [Kristen Martino](https://github.com/kristenmartino)
@@ -13,19 +13,19 @@ Interactive analytics portfolio demonstrating go-to-market business intelligence
 
 | App | Route | What It Demonstrates |
 |-----|-------|---------------------|
-| **SpectrumIQ** | `/spectrumiq` | Market opportunity scoring — ranks metros for specialty EHR adoption using pipeline-fed CMS/Census data |
+| **SpectrumIQ** | `/spectrumiq` | Illustrative metro prioritization using synthetic provider counts and embedded demographic reference values |
 | **PracticeFlow** | `/practiceflow` | Revenue cycle benchmarking against synthetic peer cohorts |
-| **ConvertPath** | `/convertpath` | SaaS funnel analysis with leaky-bucket diagnostics and ML-scored deal health |
+| **ConvertPath** | `/convertpath` | Completed lead-cohort conversion simulation plus a separately labeled synthetic deal-scoring sample |
 | **SpecialtyPulse** | `/specialtypulse` | Procedure volume and reimbursement trend monitoring |
-| **NorthStar** | `/northstar` | Executive KPI dashboard with anomaly detection engine (rolling z-score, prescriptive alerts) |
+| **NorthStar** | `/northstar` | Synthetic metric registry, adoption snapshots, and statistical alerts with templated investigation steps |
 | **AskPractice** | `/askpractice` | AI-powered natural language practice performance queries (Claude API) |
-| **AskGTM** | `/askgtm` | AI-powered GTM pipeline intelligence (Claude API) |
+| **AskGTM** | `/askgtm` | Claude questions over the same deterministic scenario used by the QBR |
 
 ### Supporting Resources
 
 | Resource | Route | Description |
 |----------|-------|-------------|
-| **Methodology** | `/methodology` | SQL methodology reference for every NorthStar GTM metric |
+| **Methodology** | `/methodology` | Five SQL examples with assumptions and local regression fixtures; not warehouse-validated |
 | **Q1 Review** | `/q1-review` | Quarterly business review analytical memo |
 
 ## Project Structure
@@ -34,7 +34,7 @@ Interactive analytics portfolio demonstrating go-to-market business intelligence
 gtm-healthcare-intel/
 ├── app/
 │   ├── layout.js              # Root layout (metadata, fonts)
-│   ├── page.js                # Home — project grid + maturity model
+│   ├── page.js                # Home — two case studies and supporting exercises
 │   ├── globals.css
 │   ├── spectrumiq/            # Market opportunity scoring
 │   ├── practiceflow/          # Revenue cycle benchmarking
@@ -116,7 +116,11 @@ pytest test_deal_scoring.py -v   # 36 tests — deal scoring model
 
 ## Data Disclaimer
 
-All data in these projects is synthetic or derived from publicly available government datasets (CMS NPPES, Medicare PUF, Census Bureau, MGMA/HFMA benchmarks). No proprietary, patient, or company-specific data was used. Benchmarks are modeled on published industry distributions for demonstration purposes.
+The QBR and AskGTM share `lib/gtm-scenario.mjs`; bookings, closed-cohort win rates, mean ACV, mean won cycle, quota attainment, and weighted NRR derive from those same invented records. The exercise preserves the $2.14M Q1 bookings / 31 wins and $1.98M Q4 bookings / 34 wins anchors; other views were reconciled to those totals. Scenario effects are explicitly assumed and are not forecasts.
+
+Other tools are independent exercises: ConvertPath uses simulated completed lead cohorts plus a separate synthetic scoring sample; PracticeFlow uses hand-set cohort and payment-cycle assumptions; SpecialtyPulse uses hand-set procedure series; NorthStar uses simulated governance and time-series data; AskPractice uses fictional aggregate practice data. SpectrumIQ defaults to generated provider records and embedded metro references; an optional local NPPES/Census path is available. CMS, Census, MGMA, and HFMA mentions do not certify that displayed values were extracted from or validated against those sources. No patient or company records are used.
+
+The common longest-cycle comparison is calculated directly from scenario records. Other AI responses use supplied text summaries, not SQL execution or warehouse tools. Instructions require observations to be separated from hypotheses and missing evidence to be acknowledged. These are model instructions, not guaranteed enforcement or a compliance certification.
 
 ## License
 

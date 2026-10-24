@@ -125,7 +125,7 @@ export default function SpecialtyPulse() {
   }, []);
 
   return (
-    <div style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", background: "#0b1120", color: "#e2e8f0", minHeight: "100vh" }}>
+    <div className="demo-page" style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", background: "#0b1120", color: "#e2e8f0", minHeight: "100vh" }}>
       <div style={{ padding: "28px 32px 0", maxWidth: 1100, margin: "0 auto" }}>
         <a href="/" style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 12 }}
            onMouseEnter={e => e.currentTarget.style.color = "#94a3b8"}
@@ -133,11 +133,11 @@ export default function SpecialtyPulse() {
           ← Portfolio
         </a>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg, #f59e0b, #ef4444)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: "#fff" }}>S</div>
+
           <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#fbbf24" }}>SpecialtyPulse</span>
         </div>
         <h1 style={{ fontSize: 26, fontWeight: 800, margin: "8px 0 4px" }}>Procedure Volume & Reimbursement Trend Monitor</h1>
-        <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 16px" }}>CMS Medicare Physician PUF data · 2021–2025 · Specialty procedure trends, reimbursement shifts, and growth signals</p>
+        <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 16px" }}>Synthetic procedure series · Scenario years 2021–2025 · No CMS extract is connected</p>
 
         {/* Cross-specialty highlights — surfaces the fastest-growing procedure
             from each specialty so the page has visible content across all four
@@ -146,7 +146,7 @@ export default function SpecialtyPulse() {
           <div style={{ fontSize: 11, fontWeight: 700, color: "#fbbf24", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
             Cross-Specialty Highlights — Fastest-Growing Procedure (4-yr CAGR)
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(170px, 100%), 1fr))", gap: 10 }}>
             {crossSpecialtyHighlights.map(h => (
               <button key={h.specialty} onClick={() => setSpecialty(h.specialty)} style={{
                 textAlign: "left", padding: "12px 14px", borderRadius: 8,
@@ -165,14 +165,14 @@ export default function SpecialtyPulse() {
         </div>
 
         {/* Specialty tabs */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
           {Object.keys(SPECIALTIES).map(s => (
             <button key={s} onClick={() => setSpecialty(s)} style={{ padding: "8px 18px", borderRadius: 8, border: specialty === s ? "1.5px solid #fbbf24" : "1.5px solid #1e293b", background: specialty === s ? "#fbbf2412" : "#111b2e", color: specialty === s ? "#fbbf24" : "#64748b", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{s}</button>
           ))}
         </div>
 
         {/* Sort */}
-        <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 20, fontSize: 12, color: "#64748b" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 20, fontSize: 12, color: "#64748b" }}>
           <span style={{ fontWeight: 600 }}>Sort:</span>
           {[["growth", "Volume Growth"], ["volume", "Total Volume"], ["reimb", "Reimb. Growth"]].map(([k, l]) => (
             <button key={k} onClick={() => setSortBy(k)} style={{ padding: "4px 12px", borderRadius: 6, border: "none", background: sortBy === k ? "#fbbf2418" : "transparent", color: sortBy === k ? "#fbbf24" : "#64748b", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>{l}</button>
@@ -201,7 +201,7 @@ export default function SpecialtyPulse() {
         {/* Procedure cards */}
         <div style={{ display: "grid", gap: 12 }}>
           {procedures.map(p => (
-            <div key={p.code} style={{ background: "#111b2e", borderRadius: 10, border: "1px solid #1e293b", padding: 20, display: "grid", gridTemplateColumns: "1fr 160px 160px 120px 120px", alignItems: "center", gap: 16 }}>
+            <div key={p.code} style={{ background: "#111b2e", borderRadius: 10, border: "1px solid #1e293b", padding: 20, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(150px, 100%), 1fr))", alignItems: "center", gap: 16 }}>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                   <span style={{ fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 4, background: "#1e293b", color: "#94a3b8" }}>CPT {p.code}</span>
@@ -238,19 +238,20 @@ export default function SpecialtyPulse() {
 
         {/* Summary insight */}
         <div style={{ marginTop: 24, background: "#111b2e", borderRadius: 10, border: "1px solid #1e293b", padding: 20 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#fbbf24", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Market Signal Summary — {specialty}</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#fbbf24", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Scenario summary — {specialty}</div>
           <p style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.7, margin: 0 }}>
             {(() => {
-              const rising = procedures.filter(p => p.growth > 3);
+              const rising = procedures.filter(p => p.growth > 0);
               const declining = procedures.filter(p => p.growth < 0);
-              return `${rising.length} of ${procedures.length} tracked procedures show positive volume growth (${rising.map(p => p.name.split(" ")[0]).join(", ")}). ${declining.length > 0 ? `${declining.length} procedures are declining: ${declining.map(p => p.name.split(" ")[0]).join(", ")}. ` : ""}The fastest-growing procedure is ${procedures[0].name} at ${procedures[0].growth}% CAGR. This suggests growing EHR demand for ${specialty.toLowerCase()} practices focused on ${rising.slice(0, 2).map(p => p.name.split("(")[0].trim().toLowerCase()).join(" and ")}.`;
+              const fastest = [...procedures].sort((a, b) => b.growth - a.growth)[0];
+              return `${rising.length} of ${procedures.length} procedure series rise and ${declining.length} decline in this synthetic example. ${fastest.name} has the highest volume CAGR at ${fastest.growth}%. Procedure growth alone does not establish software demand; validate the pattern against a dated source extract before drawing market conclusions.`;
             })()}
           </p>
         </div>
 
         <div style={{ marginTop: 16, padding: 14, background: "#111b2e", borderRadius: 8, border: "1px solid #1e293b" }}>
           <p style={{ fontSize: 11, color: "#475569", margin: 0, lineHeight: 1.5 }}>
-            <strong>Data Note:</strong> Volume and reimbursement figures modeled on CMS Medicare Physician & Other Practitioners Public Use Files and CMS Physician Fee Schedule. Trends represent Medicare FFS utilization — actual commercial volumes may differ. Data is illustrative for portfolio purposes.
+            <strong>Data Note:</strong> All volume and reimbursement series are hand-set illustrative values. CMS public-use files and fee schedules are potential validation sources; these values are not a verified extract or current reimbursement guidance. Procedure names are simplified labels, not a coding reference.
           </p>
         </div>
       </div>
