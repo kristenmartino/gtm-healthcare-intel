@@ -1,32 +1,21 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 
 import { PRACTICE_DATA } from "../../lib/practice-scenario.mjs";
+import { aggregatePractice } from "../../lib/practice-aggregates.mjs";
 
 function SmartInsights() {
-  const d = PRACTICE_DATA;
   const insights = [];
   
   // Find top performer
-  const provTotals = {};
-  d.providers.forEach(p => { provTotals[p] = { rev: 0, patients: 0, collections: 0, denials: 0 }; });
-  d.months.forEach(m => {
-    Object.entries(m.providers).forEach(([p, data]) => {
-      provTotals[p].rev += data.revenue;
-      provTotals[p].patients += data.patients;
-      provTotals[p].collections += data.collections;
-      provTotals[p].denials += data.denials;
-    });
-  });
+  const provTotals = Object.fromEntries(aggregatePractice().providers.map(p => [p.provider, { ...p, rev: p.revenue }]));
   
   const topRev = Object.entries(provTotals).sort((a, b) => b[1].rev - a[1].rev)[0];
   const topCollect = Object.entries(provTotals).sort((a, b) => (b[1].collections / b[1].rev) - (a[1].collections / a[1].rev))[0];
   const mostDenials = Object.entries(provTotals).sort((a, b) => b[1].denials - a[1].denials)[0];
   
   // Recent trend
-  const last3 = d.months.slice(-3);
-  const prev3 = d.months.slice(-6, -3);
-  const recentRev = last3.reduce((a, m) => a + Object.values(m.providers).reduce((b, p) => b + p.revenue, 0), 0);
-  const prevRev = prev3.reduce((a, m) => a + Object.values(m.providers).reduce((b, p) => b + p.revenue, 0), 0);
+  const recentRev = aggregatePractice({ monthIndexes: [9,10,11] }).total.revenue;
+  const prevRev = aggregatePractice({ monthIndexes: [6,7,8] }).total.revenue;
   const trend = ((recentRev - prevRev) / prevRev * 100).toFixed(1);
   
   insights.push({ icon: "📈", title: "Revenue Trend · Q4 vs Q3 2025", text: `Practice revenue ${Number(trend) > 0 ? "up" : "down"} ${Math.abs(trend)}% in Oct–Dec compared with Jul–Sep 2025.` });
@@ -101,13 +90,13 @@ export default function AskPractice() {
         setMessages(prev => [...prev, { role: "assistant", text: reply, source: data.source }]);
       }
     } catch (err) {
-      setMessages(prev => [...prev, { role: "assistant", text: "The model service could not be reached. Please try again. The synthetic practice summary remains available." }]);
+      setMessages(prev => [...prev, { role: "assistant", text: "The practice calculation service could not be reached. Please try again. The synthetic practice summary remains available." }]);
     }
     setLoading(false);
   }
 
   // Compute some quick chart data
-  const monthlyRev = PRACTICE_DATA.months.map(m => Object.values(m.providers).reduce((a, p) => a + p.revenue, 0));
+  const monthlyRev = PRACTICE_DATA.months.map((_,i) => aggregatePractice({ monthIndexes: [i] }).total.revenue);
   const monthLabels = PRACTICE_DATA.months.map(m => m.month);
 
   return (
@@ -126,7 +115,7 @@ export default function AskPractice() {
             <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, background: "#10b98118", color: "#34d399", fontWeight: 600, marginLeft: 4 }}>Synthetic data demo</span>
           </div>
           <h1 style={{ fontSize: 22, fontWeight: 800, margin: "6px 0 4px" }}>Questions about the practice scenario</h1>
-          <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Ask plain-English questions about {PRACTICE_DATA.practiceName} · Powered by Claude</p>
+          <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Ask about counts, revenue, collections, and ratios for {PRACTICE_DATA.practiceName} · Calculated from the 2025 scenario</p>
         </div>
       </div>
 
@@ -163,7 +152,7 @@ export default function AskPractice() {
                 border: m.role === "user" ? "none" : "1px solid #1e293b",
                 fontSize: 13, lineHeight: 1.65, whiteSpace: "pre-wrap"
               }}>
-                {m.role === "assistant" && <div style={{ fontSize: 10, fontWeight: 700, color: "#34d399", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>{m.source === "scenario-calculation" ? "Scenario calculation" : "Claude response"}</div>}
+                {m.role === "assistant" && <div style={{ fontSize: 10, fontWeight: 700, color: "#34d399", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Scenario calculation</div>}
                 {m.text}
               </div>
             </div>
@@ -171,7 +160,7 @@ export default function AskPractice() {
           {loading && (
             <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 12 }}>
               <div style={{ padding: "12px 16px", borderRadius: "14px 14px 14px 4px", background: "#111b2e", border: "1px solid #1e293b", fontSize: 13, color: "#64748b" }}>
-                <span style={{ animation: "pulse 1.5s infinite" }}>Analyzing practice data...</span>
+                <span style={{ animation: "pulse 1.5s infinite" }}>Calculating practice measures...</span>
               </div>
             </div>
           )}
@@ -204,7 +193,7 @@ export default function AskPractice() {
             >{loading ? "..." : "Ask"}</button>
           </div>
           <div style={{ fontSize: 10, color: "#475569", marginTop: 6 }}>
-            Powered by Claude API · Queries synthetic data for {PRACTICE_DATA.practiceName} ({PRACTICE_DATA.providers.length} providers, {PRACTICE_DATA.payers.length} payers, 12 months)
+            Synthetic 2025 scenario · {PRACTICE_DATA.providers.length} providers · {PRACTICE_DATA.payers.length} payers · 12 months
           </div>
           <details style={{ marginTop: 8 }}>
             <summary style={{ fontSize: 11, color: "#64748b", cursor: "pointer", userSelect: "none" }}>
@@ -212,13 +201,13 @@ export default function AskPractice() {
             </summary>
             <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 8, lineHeight: 1.7, padding: "12px 14px", background: "#0b1120", borderRadius: 8, border: "1px solid #1e293b" }}>
               <p style={{ margin: "0 0 8px" }}>
-                <strong style={{ color: "#e2e8f0" }}>Grounding:</strong> Same pattern as <a href="/askgtm" style={{ color: "#10b981" }}>AskGTM</a> — the server-side system prompt holds a flattened text summary of the synthetic 12-month practice dataset (5 providers × 6 payers, monthly volumes, revenue, collections, denials, no-shows, procedure mix). Revenue totals and denial counts are calculated from the shared scenario records, including provider and time filters. Revenue requests support inclusive month ranges and relative periods ending in Dec 2025; unsupported calculations ask for clarification. Other questions use Claude with precomputed denial totals in its summary. There is no live EHR connection or SQL execution. The model can make mistakes and is instructed to separate observations from hypotheses.
+                <strong style={{ color: "#e2e8f0" }}>Calculations:</strong> Every supported answer is calculated from the same synthetic records as the summary cards and revenue chart. Measures include revenue, collections, denial and no-show counts, patient counts, procedure counts, payer revenue/mix, average reimbursement, and the collections-to-revenue ratio. Provider filters and 2025 month, quarter, half-year, or inclusive month ranges are supported. Relative periods end in Dec 2025. Unknown scopes ask for clarification; no language model performs arithmetic or adds explanations to practice answers.
               </p>
               <p style={{ margin: "0 0 8px" }}>
-                <strong style={{ color: "#e2e8f0" }}>Scope:</strong> Aggregate practice performance only — provider productivity, denial counts by provider and period, collection rates, no-show patterns, payer-mix breakdowns. Questions that require patient-identifiable information ("show me patient John Smith's chart history", "pull up MRN 12345", "which patients are overdue for follow-up") fall outside scope, and the assistant is instructed in the system prompt to decline them.
+                <strong style={{ color: "#e2e8f0" }}>Definitions:</strong> Collections / revenue divides the summed amounts for the selected period; it is not an average of monthly rates. Average reimbursement is an unweighted mean of the supplied provider-month averages. Patient totals sum monthly counts and do not identify unique patients across months. Payer data contains revenue only; procedure data contains counts only.
               </p>
               <p style={{ margin: 0 }}>
-                <strong style={{ color: "#e2e8f0" }}>Limits:</strong> No patient records are present. The model is instructed to decline patient-level questions; this prompt behavior is not a privacy control or a compliance certification. Do not enter patient information. Questions are sent independently without previous chat turns. Denials are counts, and no claim denominator or denial reasons are supplied.
+                <strong style={{ color: "#e2e8f0" }}>Limits:</strong> No patient records, claim denominators, scheduled-appointment counts, denial reasons, or payment allocation are supplied. Denial and no-show rates cannot be calculated. Revenue and collection amounts are generated independently, so their ratio does not establish payment timing or a cause. Do not enter patient information. Each question is independent of earlier chat turns.
               </p>
             </div>
           </details>

@@ -89,7 +89,7 @@ export default function Home() {
         </section>
         <footer className="portfolio-footer">
           <p>Built by Kristen Martino.</p>
-          <p>React and Next.js for the interactive views; Python for data pipelines and deal scoring; the Claude API for the two question interfaces. Data and model limitations are documented in each demo.</p>
+          <p>React and Next.js for the interactive views; Python for data pipelines and deal scoring; the Claude API for GTM questions; calculated scenario records for practice questions. Data and model limitations are documented in each demo.</p>
         </footer>
       </main>
     </div>

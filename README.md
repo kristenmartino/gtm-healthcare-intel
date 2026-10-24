@@ -18,7 +18,7 @@ Interactive GTM analytics exercises for specialty healthcare software. All scena
 | **ConvertPath** | `/convertpath` | Completed lead-cohort conversion simulation plus a separately labeled synthetic deal-scoring sample |
 | **SpecialtyPulse** | `/specialtypulse` | Procedure volume and reimbursement trend monitoring |
 | **NorthStar** | `/northstar` | Synthetic metric registry, adoption snapshots, and statistical alerts with templated investigation steps |
-| **AskPractice** | `/askpractice` | AI-powered natural language practice performance queries (Claude API) |
+| **AskPractice** | `/askpractice` | Calculated practice aggregates with provider and period filters |
 | **AskGTM** | `/askgtm` | Claude questions over the same deterministic scenario used by the QBR |
 
 ### Supporting Resources
@@ -77,7 +77,7 @@ gtm-healthcare-intel/
 ```bash
 npm install
 cp .env.local.example .env.local
-# Add your Anthropic API key to .env.local (required for AskPractice and AskGTM)
+# Add your Anthropic API key to .env.local (required for AskGTM; AskPractice needs no key)
 npm run dev
 ```
 
@@ -108,7 +108,7 @@ pytest test_deal_scoring.py -v   # 36 tests — deal scoring model
 
 - **Framework:** Next.js 14 (App Router)
 - **Frontend:** React 18 (inline styles, no component library)
-- **AI:** Anthropic Claude API (AskPractice, AskGTM)
+- **AI:** Anthropic Claude API (AskGTM); AskPractice uses deterministic calculations
 - **Data Pipelines:** Python (pandas, NumPy), L2 logistic regression
 - **Testing:** pytest (66 tests across both pipelines)
 - **Deployment:** Vercel with GitHub auto-deploys
