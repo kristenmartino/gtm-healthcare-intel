@@ -72,3 +72,24 @@ test('cycle answers clarify unsupported scope rather than answering for the comp
     'Who has the longest cycle in Q1 2025 compared to Q4 2024?',
   ]) assert.match(answerKnownGTMQuestion(question), /Please specify/);
 });
+
+test('equivalent cycle questions use the same filtered calculation in either word order', () => {
+  const expected = answerKnownGTMQuestion('Who has the longest average sales cycle for Dermatology in Q1 2025?');
+  for (const question of [
+    'For Dermatology in Q1 2025, whose average sales cycle is longest?',
+    'Whose mean sales cycle was longest in Dermatology in Q1 2025?',
+    'Which rep has the slowest average sales cycle for Dermatology in Q1 2025?',
+    'For Dermatology in Q1 2025, whose average sales cycles are longest?',
+  ]) assert.equal(answerKnownGTMQuestion(question), expected, question);
+  assert.match(answerKnownGTMQuestion('For Referral in Q1 2025, whose mean sales cycle is longest?'), /Rivera.*52 days across 2 won/);
+  assert.match(answerKnownGTMQuestion('For Dermatology and Kim in Q1 2025, whose cycle is longest?'), /No won opportunities match/);
+  for (const question of [
+    'For Cardiology in Q1 2025, whose average sales cycle is longest?',
+    'Whose median sales cycle is longest in Q1 2025?',
+    'Whose cycle is longest excluding Dermatology in Q1 2025?',
+    'Whose cycle is longest for deals over $100000 in Q1 2025?',
+    'Which specialty has a sales cycle that is longest in Q1 2025?',
+  ]) assert.match(answerKnownGTMQuestion(question), /Please specify/, question);
+  assert.equal(answerKnownGTMQuestion('What is the average sales cycle for Dermatology?'), null);
+  assert.equal(answerKnownGTMQuestion('Who has the longest customer tenure?'), null);
+});

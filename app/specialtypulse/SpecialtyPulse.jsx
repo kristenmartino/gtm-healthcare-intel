@@ -185,7 +185,7 @@ export default function SpecialtyPulse() {
         {showAlerts && alerts.length > 0 && (
           <div style={{ background: "#111b2e", borderRadius: 10, border: "1px solid #fbbf2430", padding: 18, marginBottom: 20 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#fbbf24", textTransform: "uppercase", letterSpacing: "0.05em" }}>Rising Procedure Alerts</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#fbbf24", textTransform: "uppercase", letterSpacing: "0.05em" }}>Procedure Trend Alerts</div>
               <button onClick={() => setShowAlerts(false)} style={{ background: "none", border: "none", color: "#475569", fontSize: 11, cursor: "pointer" }}>Dismiss</button>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
