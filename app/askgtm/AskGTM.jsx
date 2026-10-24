@@ -1,3 +1,4 @@
+import QueryEvidence from "../QueryEvidence";
 import { useState, useRef, useEffect, useMemo } from "react";
 
 import { GTM_DATA, qbr, pct, CURRENT_QUARTER } from "../../lib/gtm-scenario.mjs";
@@ -75,7 +76,7 @@ export default function AskGTM() {
         setMessages(prev => [...prev, { role: "assistant", text: errMsg }]);
       } else {
         const reply = data.content?.map(c => c.text || "").join("\n") || "I wasn't able to process that query. Please try rephrasing.";
-        setMessages(prev => [...prev, { role: "assistant", text: reply, source: data.source }]);
+        setMessages(prev => [...prev, { role: "assistant", text: reply, source: data.source, scope: data.appliedScope, calls: data.toolCalls }]);
       }
     } catch (err) {
       setMessages(prev => [...prev, { role: "assistant", text: "The model service could not be reached. Please try again. The summary and QBR remain available." }]);
@@ -134,8 +135,9 @@ export default function AskGTM() {
                 border: m.role === "user" ? "none" : "1px solid #1e293b",
                 fontSize: 13, lineHeight: 1.65, whiteSpace: "pre-wrap"
               }}>
-                {m.role === "assistant" && <div style={{ fontSize: 10, fontWeight: 700, color: "#a78bfa", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>{m.source === "scenario-calculation" ? "Scenario calculation" : "Claude response"}</div>}
+                {m.role === "assistant" && <div style={{ fontSize: 10, fontWeight: 700, color: "#a78bfa", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>{m.source === "validated-query" ? "Calculated result" : m.source === "query-clarification" ? "Clarification needed" : "Service message"}</div>}
                 {m.text}
+                {m.role === "assistant" && <QueryEvidence scope={m.scope} calls={m.calls} />}
               </div>
             </div>
           ))}
@@ -173,7 +175,7 @@ export default function AskGTM() {
             >{loading ? "..." : "Ask"}</button>
           </div>
           <div style={{ fontSize: 10, color: "#475569", marginTop: 6 }}>
-            Claude API · Synthetic scenario shared with the QBR ({GTM_DATA.deals.length} deals, {GTM_DATA.reps.length} reps, {GTM_DATA.specialties.length} specialties)
+            Claude query tools · Synthetic scenario shared with the QBR ({GTM_DATA.deals.length} deals, {GTM_DATA.reps.length} reps, {GTM_DATA.specialties.length} specialties)
           </div>
           <details style={{ marginTop: 8 }}>
             <summary style={{ fontSize: 11, color: "#64748b", cursor: "pointer", userSelect: "none" }}>
@@ -181,13 +183,13 @@ export default function AskGTM() {
             </summary>
             <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 8, lineHeight: 1.7, padding: "12px 14px", background: "#0b1120", borderRadius: 8, border: "1px solid #1e293b" }}>
               <p style={{ margin: "0 0 8px" }}>
-                <strong style={{ color: "#e2e8f0" }}>Grounding:</strong> The server sends Claude a text summary of the shared synthetic dataset, including precomputed metrics by quarter, rep, specialty, and source. The longest-cycle comparison is calculated directly from scenario records; other questions use Claude. There is no SQL execution, retrieval, or live CRM connection.
+                <strong style={{ color: "#e2e8f0" }}>Grounding:</strong> Claude translates each question into a structured tool call. The server validates its period, filters, grouping, threshold and ranking, then calculates and formats the answer from the same synthetic records as the QBR. No model-written numerical answer is displayed. There is no live CRM or warehouse connection.
               </p>
               <p style={{ margin: "0 0 8px" }}>
-                <strong style={{ color: "#e2e8f0" }}>Evidence:</strong> The QBR and summary use the same scenario module. Questions are sent independently, without earlier chat turns. The model is instructed to distinguish observations from hypotheses and avoid unsupported causes, forecasts, or personnel decisions. Responses can still be wrong; compare important figures with the <a href="/q1-review">QBR</a>.
+                <strong style={{ color: "#e2e8f0" }}>Evidence:</strong> Each answer shows its applied query and executed server tool. Questions are independent of earlier chat turns. QBR rollups, rep shortfalls, retention ratios and cohort denominators are calculated in code. Interpretation can still be ambiguous; inspect the applied filters and compare figures with the <a href="/q1-review">QBR</a>.
               </p>
               <p style={{ margin: 0 }}>
-                <strong style={{ color: "#e2e8f0" }}>Limits:</strong> No live warehouse, legal-review dates, activity history, or loss reasons are available. Missing-data questions should be declined, but prompt instructions are not an enforcement guarantee. Requests are rate limited; API connectivity is required.
+                <strong style={{ color: "#e2e8f0" }}>Limits:</strong> No legal-review dates, activity history, loss reasons or causal experiments are supplied. Unsupported measures and invalid tool inputs request clarification. Incomplete model responses are never shown as numerical answers. Requests are rate limited; API connectivity is required.
               </p>
             </div>
           </details>

@@ -23,8 +23,8 @@ const TOOLS = [
   { title: "Market prioritization", name: "SpectrumIQ", href: "/spectrumiq", description: "Rank metros using provider density and demographic assumptions. Inspect the components behind each score." },
   { title: "Practice benchmarking", name: "PracticeFlow", href: "/practiceflow", description: "Compare revenue cycle measures with a synthetic peer cohort and explore a sample denial breakdown." },
   { title: "Procedure trends", name: "SpecialtyPulse", href: "/specialtypulse", description: "Compare illustrative procedure volumes and reimbursement trends across specialties." },
-  { title: "GTM questions", name: "AskGTM", href: "/askgtm", description: "Ask Claude about a synthetic sales dataset. Review the data summary and limits behind its answers." },
-  { title: "Practice questions", name: "AskPractice", href: "/askpractice", description: "Ask about aggregate practice performance using a fictional practice dataset." },
+  { title: "GTM questions", name: "AskGTM", href: "/askgtm", description: "Ask about a synthetic sales dataset using validated query tools. Inspect the applied filters and calculations." },
+  { title: "Practice questions", name: "AskPractice", href: "/askpractice", description: "Query a fictional practice dataset with explicit filters, grouping, thresholds and calculated results." },
 ];
 
 export default function Home() {
@@ -89,7 +89,7 @@ export default function Home() {
         </section>
         <footer className="portfolio-footer">
           <p>Built by Kristen Martino.</p>
-          <p>React and Next.js for the interactive views; Python for data pipelines and deal scoring; the Claude API for GTM questions; calculated scenario records for practice questions. Data and model limitations are documented in each demo.</p>
+          <p>React and Next.js for the interactive views; Python for data pipelines and deal scoring; Claude for interpreting questions; validated server tools for all GTM and practice calculations. Data and model limitations are documented in each demo.</p>
         </footer>
       </main>
     </div>

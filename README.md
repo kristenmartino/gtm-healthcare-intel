@@ -49,7 +49,11 @@ gtm-healthcare-intel/
 │       ├── ask/               # API route for AskPractice
 │       └── askgtm/            # API route for AskGTM
 ├── lib/
-│   └── rate-limit.js          # Shared per-IP rate limiter for AI routes
+│   ├── query-contract.mjs     # Shared schemas and strict input validation
+│   ├── query-engine.mjs       # Record calculations and answer formatting
+│   ├── query-service.mjs      # Model tool planning and constraint checks
+│   ├── query-route.mjs        # Shared HTTP validation and failure handling
+│   └── rate-limit.mjs         # Shared per-IP rate limiter for AI routes
 ├── data/
 │   ├── pipeline/
 │   │   ├── spectrumiq_pipeline.py   # CMS NPPES + Census ETL → metro scores
@@ -108,7 +112,7 @@ pytest test_deal_scoring.py -v   # 36 tests — deal scoring model
 
 - **Framework:** Next.js 14 (App Router)
 - **Frontend:** React 18 (inline styles, no component library)
-- **AI:** Anthropic Claude API (AskGTM); AskPractice uses deterministic calculations
+- **AI:** Anthropic Claude API for structured query interpretation in AskGTM and AskPractice; validated server tools calculate and format every numerical result
 - **Data Pipelines:** Python (pandas, NumPy), L2 logistic regression
 - **Testing:** pytest (66 tests across both pipelines)
 - **Deployment:** Vercel with GitHub auto-deploys
@@ -125,3 +129,13 @@ Mean won-cycle comparisons are calculated from the requested quarter, specialty,
 ## License
 
 [MIT](LICENSE)
+
+## Validated query tools
+
+Both assistant routes use `query-service.mjs`: one schema-constrained Claude tool request is validated locally with Ajv and checked against explicit user constraints. `query_practice` and `query_gtm` run only on the checked-in synthetic records. The server renders the returned figures directly; model text, incomplete generations, invalid inputs and unknown tool calls never become numerical answers. There is no second model pass to rewrite calculated numbers.
+
+Queries carry explicit periods, entity selections, grouping, aggregate predicates and rankings. Rankings can run within each period and preserve ties before display rounding. Independent measures carry independent filters; the engine rejects unsupported payer/procedure joins and absent denominators. Applied filters and the executed tool are inspectable beneath each answer. Interpretation is still a model decision, so ambiguous requests ask for clarification and the applied scope should be inspected.
+
+QBR arithmetic includes gross rep shortfalls and overperformance separately. Retention uses the starting cohort; marketing uses a separate created-lead cohort. Causal explanations are bounded server templates, not generated claims. Both assistants require API connectivity for question interpretation; the static summaries and QBR remain available if it fails.
+
+Run the API-key-free unit suite with `npm run test:scenario` and pipeline fixtures with `python -m pytest -q` from `data/pipeline`. Run real-model end-to-end checks against an explicitly selected local, preview or production server with `npm run eval:queries -- --base URL --suite full --out /absolute/path/results.json`. The `smoke` suite selects deployment checks. These opt-in checks call the model-backed service, preserve executed tool inputs/results, compare calculated fields to known anchors, and respect the public request limit.
