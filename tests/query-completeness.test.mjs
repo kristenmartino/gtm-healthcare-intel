@@ -51,6 +51,9 @@ test('a valid report cannot hide a dropped measure; explicitly independent cohor
   const complete=await answer('gtm','Show marketing spend and closed-cohort win rate in Q1 2025.',[marketing,gtm('performance',{groupBy:['quarter']})]);
   assert.equal(complete.source,'validated-query');assert.match(complete.content[0].text,/Marketing spend \$240,000/);assert.match(complete.content[0].text,/win rate 24.8%/);
   assert.doesNotMatch(complete.content[0].text,/MQLs|Mean won ACV/);
+  const independent=await answer('gtm','Show created-lead pipeline and closed-cohort win rate in Q1 2025.',[marketing,gtm('performance',{groupBy:['quarter']})]);
+  assert.equal(independent.source,'validated-query');assert.match(independent.content[0].text,/Created-lead pipeline \$2,200,000/);assert.match(independent.content[0].text,/win rate 24.8%/);assert.doesNotMatch(independent.content[0].text,/Open qualified pipeline/);
+  const wrongCohort=await answer('gtm','Show created-lead pipeline in Q1 2025.',[gtm('performance',{groupBy:['quarter']})]);assert.equal(wrongCohort.source,'query-clarification');
 });
 
 test('written thresholds preserve value, direction and strictness without inventing a ranking',async()=>{
