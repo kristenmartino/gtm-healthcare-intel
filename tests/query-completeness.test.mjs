@@ -94,6 +94,26 @@ test('all pairs of independent inclusive month ranges stay bound to their own me
   assert.equal(named,undefined);
 });
 
+test('valid per-period query partitions cover each measure completely without widening another measure',()=>{
+  const queries=Array.from({length:4},(_,quarter)=>practice('denials',[0,1,2].map(m=>quarter*3+m),{groupBy:['quarter','provider'],ranking:ranking('denials','highest',['quarter'])}));
+  assert.doesNotThrow(()=>validateQuestionConstraints('practice','Who had the most denials in each quarter of 2025?',{queries}));
+  assert.equal(executeQueryTool('query_practice',{queries,explain:false}).results.flatMap(r=>r.rankings).length,4);
+  const filtered=queries.map(q=>({...q,groupBy:['provider'],ranking:ranking('denials','highest')}));
+  assert.doesNotThrow(()=>validateQuestionConstraints('practice','Who had the most denials in each quarter of 2025?',{queries:filtered}));
+  const mixed=[...queries,practice('collections',[0,1,2])];
+  assert.throws(()=>validateQuestionConstraints('practice','Show denial counts and collections for 2025.',{queries:mixed}),/shared period/);
+});
+
+test('retention accepts a Q1 quarter label while preserving the starting cohort and period limits',()=>{
+  const run=query=>executeQueryTool('query_gtm',{queries:[query],explain:false});
+  const quarter=run(gtm('retention',{groupBy:['quarter']})).results[0].rows[0];
+  assert.equal(quarter.name,'Q1 2025');assert.equal(quarter.nrr,3266600/3000000*100);
+  const specialties=run(gtm('retention',{groupBy:['quarter','specialty'],ranking:ranking('nrr','highest',['quarter'])})).results[0];
+  assert.equal(specialties.rows.length,4);assert.equal(specialties.rankings[0].within,'Q1 2025');
+  assert.throws(()=>run(gtm('retention',{quarters:['Q4 2024'],groupBy:['quarter']})));
+  assert.throws(()=>run(gtm('retention',{groupBy:['quarter','rep']})));
+});
+
 test('ranked responses lead with winners while keeping every supporting value inspectable',()=>{
   const result=executeQueryTool('query_practice',{queries:[practice('revenue',Array.from({length:12},(_,i)=>i),{groupBy:['month','provider'],ranking:ranking('revenue','lowest',['month'])})],explain:false});
   const rendered=renderQueryResult(result);
