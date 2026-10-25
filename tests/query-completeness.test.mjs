@@ -104,6 +104,16 @@ test('valid per-period query partitions cover each measure completely without wi
   assert.throws(()=>validateQuestionConstraints('practice','Show denial counts and collections for 2025.',{queries:mixed}),/shared period/);
 });
 
+test('retention accepts a Q1 quarter label while preserving the starting cohort and period limits',()=>{
+  const run=query=>executeQueryTool('query_gtm',{queries:[query],explain:false});
+  const quarter=run(gtm('retention',{groupBy:['quarter']})).results[0].rows[0];
+  assert.equal(quarter.name,'Q1 2025');assert.equal(quarter.nrr,3266600/3000000*100);
+  const specialties=run(gtm('retention',{groupBy:['quarter','specialty'],ranking:ranking('nrr','highest',['quarter'])})).results[0];
+  assert.equal(specialties.rows.length,4);assert.equal(specialties.rankings[0].within,'Q1 2025');
+  assert.throws(()=>run(gtm('retention',{quarters:['Q4 2024'],groupBy:['quarter']})));
+  assert.throws(()=>run(gtm('retention',{groupBy:['quarter','rep']})));
+});
+
 test('ranked responses lead with winners while keeping every supporting value inspectable',()=>{
   const result=executeQueryTool('query_practice',{queries:[practice('revenue',Array.from({length:12},(_,i)=>i),{groupBy:['month','provider'],ranking:ranking('revenue','lowest',['month'])})],explain:false});
   const rendered=renderQueryResult(result);
