@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { GTM_DATA } from '../lib/gtm-scenario.mjs';
 import { aggregatePractice } from '../lib/practice-aggregates.mjs';
+import { PRACTICE_DATA } from '../lib/practice-scenario.mjs';
 import { executeQueryTool, renderQueryResult } from '../lib/query-engine.mjs';
 import { validateResultCoverage } from '../lib/query-coverage.mjs';
 import { normalizeQueryLanguage } from '../lib/query-language.mjs';
@@ -13,6 +14,10 @@ const args=process.argv.slice(2),option=(name,fallback)=>args.includes(name)?arg
 const base=option('--base','http://localhost:3027'),out=option('--out','/private/tmp/gtm-query-evaluation.json'),suite=option('--suite','full');
 const results=r=>r.toolCalls?.flatMap(c=>c.result?.results||[])||[];
 const metric=(r,key)=>results(r).find(q=>q.metric===key);
+const periodRankings=(r,key,axis)=>results(r).filter(q=>q.metric===key).flatMap(q=>{
+  const periods=[...new Set(q.query.months.map(m=>axis==='month'?PRACTICE_DATA.months[m].month:`Q${Math.floor(m/3)+1}`))];
+  return q.rankings.map(g=>({...g,within:g.within||(periods.length===1?periods[0]:undefined)}));
+});
 const same=(actual,expected)=>assert.deepEqual([...actual].sort(),[...expected].sort());
 const calculated=r=>{assert.equal(r.source,'validated-query',r.content?.[0]?.text);assert.ok(r.toolCalls?.some(c=>c.id&&c.name.startsWith('query_')));};
 const clarification=r=>assert.equal(r.source,'query-clarification',r.content?.[0]?.text);
@@ -26,9 +31,9 @@ add('no-more','practice','Who had no more than 12 no-shows in January 2025?',thr
 add('no-fewer','practice','Who had no fewer than 12 no-shows in January 2025?',threshold('gte',['Shah','Singh','Brooks','Yamamoto']));
 add('under','practice','Show providers with under 12 no-shows in January 2025.',threshold('lt',['Lin']));
 add('equals','practice','Which providers had exactly 12 no-shows in January 2025?',threshold('eq',[]));
-add('each-month','practice','Which provider had the lowest revenue each month in 2025?',r=>{calculated(r);const q=metric(r,'revenue');assert.equal(q.rankings.length,12);const apr=q.rankings.find(g=>g.within==='Apr');assert.equal(apr.rows[0].dimensions.provider,'Singh');assert.equal(apr.rows[0].revenue,110374);assert.equal((r.content[0].text.match(/Lowest Revenue for/g)||[]).length,12);assert.doesNotMatch(r.content[0].text,/Jan · Lin/);assert.equal(r.calculationDetails[0].rows.length,60);},true);
+add('each-month','practice','Which provider had the lowest revenue each month in 2025?',r=>{calculated(r);const rankings=periodRankings(r,'revenue','month');assert.equal(rankings.length,12);const apr=rankings.find(g=>g.within==='Apr');assert.equal(apr.rows[0].dimensions.provider,'Singh');assert.equal(apr.rows[0].revenue,110374);assert.equal((r.content[0].text.match(/Lowest Revenue for/g)||[]).length,12);assert.doesNotMatch(r.content[0].text,/Jan · Lin/);assert.equal(r.calculationDetails.filter(d=>d.title==='Revenue').flatMap(d=>d.rows).length,60);},true);
 add('in-each-month','practice','Show revenue in each month of 2025.',r=>{calculated(r);const q=metric(r,'revenue');assert.equal(q.rows.length,12);assert.equal(q.rows.find(row=>row.dimensions.month==='Jan').revenue,506283);assert.equal(q.rows.find(row=>row.dimensions.month==='Dec').revenue,520065);},true);
-add('each-quarter','practice','Who had the most denials in each quarter of 2025?',r=>{calculated(r);const q=metric(r,'denials');assert.equal(q.rankings.length,4);assert.ok(q.rankings.every(g=>g.within?.startsWith('Q')));},true);
+add('each-quarter','practice','Who had the most denials in each quarter of 2025?',r=>{calculated(r);const rankings=periodRankings(r,'denials','quarter');assert.equal(rankings.length,4);assert.ok(rankings.every(g=>g.within?.startsWith('Q')));},true);
 add('lowest-payer','practice','Which payer has the lowest revenue in 2025?',r=>{calculated(r);const row=metric(r,'payerRevenue').rankings[0].rows[0];assert.equal(row.name,'Cigna');assert.equal(row.payerRevenue,400878);},true);
 add('lowest-procedure','practice','Which procedure had the lowest count in 2025?',r=>{calculated(r);const row=metric(r,'procedures').rankings[0].rows[0];assert.equal(row.name,'Cosmetic Consult');assert.equal(row.procedures,671);},true);
 add('highest-provider','practice','Which provider has the highest payer revenue in 2025?',r=>{calculated(r);const row=metric(r,'payerRevenue').rankings[0].rows[0];assert.equal(row.name,'Singh');assert.equal(row.payerRevenue,1592362);},true);
