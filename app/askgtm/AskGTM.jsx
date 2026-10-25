@@ -76,7 +76,7 @@ export default function AskGTM() {
         setMessages(prev => [...prev, { role: "assistant", text: errMsg }]);
       } else {
         const reply = data.content?.map(c => c.text || "").join("\n") || "I wasn't able to process that query. Please try rephrasing.";
-        setMessages(prev => [...prev, { role: "assistant", text: reply, source: data.source, scope: data.appliedScope, calls: data.toolCalls }]);
+        setMessages(prev => [...prev, { role: "assistant", text: reply, source: data.source, scope: data.appliedScope, calls: data.toolCalls, details: data.calculationDetails }]);
       }
     } catch (err) {
       setMessages(prev => [...prev, { role: "assistant", text: "The model service could not be reached. Please try again. The summary and QBR remain available." }]);
@@ -137,7 +137,7 @@ export default function AskGTM() {
               }}>
                 {m.role === "assistant" && <div style={{ fontSize: 10, fontWeight: 700, color: "#a78bfa", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>{m.source === "validated-query" ? "Calculated result" : m.source === "query-clarification" ? "Clarification needed" : "Service message"}</div>}
                 {m.text}
-                {m.role === "assistant" && <QueryEvidence scope={m.scope} calls={m.calls} />}
+                {m.role === "assistant" && <QueryEvidence scope={m.scope} calls={m.calls} details={m.details} />}
               </div>
             </div>
           ))}
