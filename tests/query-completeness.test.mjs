@@ -79,6 +79,38 @@ test('supported missed-quota negation executes the same filtered cohort; unrelat
   const exclusion=await answer('gtm','Show bookings not from Referral in Q1 2025.',[gtm()]);assert.equal(exclusion.source,'query-clarification');
 });
 
+test('not more than preserves inclusive cutoffs and the same results as at most in both assistants',async()=>{
+  const examples=[
+    ['practice','Which providers had WORDS one point five million in revenue in 2025?',practice('revenue',Array.from({length:12},(_,i)=>i),{predicate:predicate('revenue','lte',1500000)}),4],
+    ['practice','Which providers had WORDS seven no-shows in January 2025?',practice('noShows',[0],{predicate:predicate('noShows','lte',7)}),1],
+    ['gtm','Which reps had WORDS ninety-five percent quota attainment in Q1 2025?',gtm('quota',{predicate:predicate('attainment','lte',95)}),5],
+  ];
+  for(const [domain,question,query,count]of examples){
+    const expected=await answer(domain,question.replace('WORDS','at most'),[query]);
+    assert.equal(expected.source,'validated-query');
+    for(const words of ['not more than','NOT MORE THAN','not  more\tthan']){
+      const text=question.replace('WORDS',words),result=await answer(domain,text,[query]);
+      assert.deepEqual(result,expected,text);
+      assert.equal(result.toolCalls[0].result.results[0].rows.length,count);
+      assert.throws(()=>validateQuestionConstraints(domain,text,{queries:[{...query,predicate:{...query.predicate,operator:'lt'}}]}),/threshold/);
+    }
+  }
+});
+
+test('numeric comparison normalization never removes other exclusions or malformed thresholds',async()=>{
+  const questions=[
+    ['practice','Show revenue not more than one point five million for providers not Lin in 2025.'],
+    ['practice','Show revenue not more than Medicare in 2025.'],
+    ['practice','Show revenue not more than one point in 2025.'],
+    ['practice','Show revenue not not more than one point five million in 2025.'],
+    ['gtm','Show bookings not from Referral and not more than $500K in Q1 2025.'],
+  ];
+  for(const [domain,question]of questions){
+    const response=await answerWithQueryTools({domain,question,client:{messages:{create:async()=>{throw Error('Must decline before calling the model');}}}});
+    assert.equal(response.source,'query-clarification');assert.equal(response.toolCalls.length,0);
+  }
+});
+
 test('all pairs of independent inclusive month ranges stay bound to their own measures',()=>{
   const names=['January','February','March','April','May','June','July','August','September','October','November','December'];
   for(let a=0;a<12;a++)for(let b=a;b<12;b++)for(const [c,d] of [[0,2],[3,5],[6,8],[9,11]]){

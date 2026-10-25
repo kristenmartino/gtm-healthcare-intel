@@ -355,6 +355,10 @@ function detectAnomalies(series) {
     const zScore = (current - mean) / std;
     const deviation = current - mean;
     const deviationPct = ((current - mean) / mean * 100);
+    // Every alert surface uses the same one-decimal baseline; calculations
+    // and detection continue to use the unrounded mean.
+    const displayMean = Math.round(mean * 10) / 10;
+    const baselineLabel = formatMetricValue(displayMean, s.unit);
 
     // Alert if |z| > 1.5
     if (Math.abs(zScore) < 1.5) return;
@@ -377,33 +381,33 @@ function detectAnomalies(series) {
 
     if (metricName === "Win Rate" && isBad) {
       title = `${segment} win rate dropped ${Math.abs(deviation).toFixed(1)}pp below rolling average`;
-      insight = `Current: ${formatMetricValue(current,s.unit)} vs. ${formatMetricValue(mean.toFixed(1),s.unit)} trailing avg (z-score: ${zScore.toFixed(2)}). This exceeds the illustrative alert threshold; it does not identify a cause or prove a systemic change.`;
+      insight = `Current: ${formatMetricValue(current,s.unit)} vs. ${baselineLabel} trailing avg (z-score: ${zScore.toFixed(2)}). This exceeds the illustrative alert threshold; it does not identify a cause or prove a systemic change.`;
       recommendation = segment === "Orthopedics"
         ? `Investigate deal-level loss reasons for ${segment}. No loss reasons or legal-review timestamps are included. Collect those fields before testing a process-delay hypothesis.`
         : `Review recent ${segment} losses for pattern: competitor displacement, pricing objection, or process friction. Schedule win/loss interviews on the 3 most recent losses.`;
     } else if (metricName === "Win Rate" && isGood) {
       title = `${segment} win rate up ${deviation.toFixed(1)}pp — outperforming portfolio`;
-      insight = `Current: ${formatMetricValue(current,s.unit)} vs. ${formatMetricValue(mean.toFixed(1),s.unit)} trailing avg. ${segment} is converting at ${((current / mean - 1) * 100).toFixed(0)}% above historical baseline.`;
+      insight = `Current: ${formatMetricValue(current,s.unit)} vs. ${baselineLabel} trailing avg. ${segment} is converting at ${((current / mean - 1) * 100).toFixed(0)}% above historical baseline.`;
       recommendation = `${segment} territory may be under-resourced relative to opportunity. Model current rep allocation and evaluate if shifting coverage could capture incremental bookings.`;
     } else if (metricName === "Pipeline" && !isNegative) {
       title = `${segment} pipeline volume up ${deviationPct.toFixed(0)}% above baseline`;
-      insight = `Current week: ${formatMetricValue(current,s.unit)} vs. ${formatMetricValue(mean.toFixed(0),s.unit)} rolling avg. Volume increase of ${deviationPct.toFixed(0)}% may indicate channel momentum or quality dilution.`;
+      insight = `Current week: ${formatMetricValue(current,s.unit)} vs. ${baselineLabel} rolling avg. Volume increase of ${deviationPct.toFixed(0)}% may indicate channel momentum or quality dilution.`;
       recommendation = `Cross-reference with conversion rate for ${segment}-sourced deals. If conversion is flat or declining despite volume increase, tighten qualification criteria.`;
     } else if (metricName === "Shadow Spreadsheets" && !isNegative) {
       title = `Shadow spreadsheet activity spiked to ${current} edits (${deviationPct.toFixed(0)}% above avg)`;
-      insight = `${current} edits this week vs. ${mean.toFixed(0)} weekly average. The example tracks edit counts, not the reasons for edits. Check whether report access, data freshness, or missing fields explain the change.`;
+      insight = `${current} edits this week vs. ${baselineLabel} weekly average. The example tracks edit counts, not the reasons for edits. Check whether report access, data freshness, or missing fields explain the change.`;
       recommendation = `Schedule data trust check-in with Sales team leads. Identify which specific reports are being bypassed and why. Common causes: stale data, missing fields, or reports that don't answer daily workflow questions.`;
     } else if (metricName === "Adoption" && isBad) {
-      title = `${segment} reporting adoption dropped ${Math.abs(deviation).toFixed(0)}pp`;
-      insight = `Adoption fell to ${formatMetricValue(current,s.unit)} from ${formatMetricValue(mean.toFixed(0),s.unit)} trailing average. Other simulated signals are not evidence of the cause.`;
+      title = `${segment} reporting adoption dropped ${Math.abs(deviation).toFixed(1)}pp`;
+      insight = `Adoption fell to ${formatMetricValue(current,s.unit)} from ${baselineLabel} trailing average. Other simulated signals are not evidence of the cause.`;
       recommendation = `Investigate root cause: data freshness issue, broken report, or organizational change? Run report-level engagement analysis to identify which specific dashboards lost usage.`;
     } else if (metricName === "NRR" && isGood) {
       title = `${segment} NRR trending up to ${current}${s.unit}`;
-      insight = `NRR at ${formatMetricValue(current,s.unit)} vs. ${formatMetricValue(mean.toFixed(1),s.unit)} baseline. Revenue from the starting cohort exceeds its prior-period revenue; the series does not identify the expansion mechanism.`;
+      insight = `NRR at ${formatMetricValue(current,s.unit)} vs. ${baselineLabel} baseline. Revenue from the starting cohort exceeds its prior-period revenue; the series does not identify the expansion mechanism.`;
       recommendation = `Analyze expansion drivers: is this upsell, cross-sell, or seat expansion? If repeatable, document the playbook and test it in lower-NRR segments.`;
     } else {
       title = `${metricName} ${segment}: ${isNegative ? "below" : "above"} expected range`;
-      insight = `Current: ${formatMetricValue(current,s.unit)} vs. ${formatMetricValue(mean.toFixed(1),s.unit)} avg (${deviationPct > 0 ? "+" : ""}${deviationPct.toFixed(1)}%, z=${zScore.toFixed(2)}).`;
+      insight = `Current: ${formatMetricValue(current,s.unit)} vs. ${baselineLabel} avg (${deviationPct > 0 ? "+" : ""}${deviationPct.toFixed(1)}%, z=${zScore.toFixed(2)}).`;
       recommendation = `Check source completeness and cohort size, then review underlying records before choosing an action.`;
     }
 
@@ -415,7 +419,7 @@ function detectAnomalies(series) {
       metric: metricName,
       segment,
       current,
-      mean: Math.round(mean * 10) / 10,
+      mean: displayMean,
       zScore: Math.round(zScore * 100) / 100,
       timestamp: `Scenario ${n === 4 ? "month" : "week"} ${n}`,
       unit: s.unit,
