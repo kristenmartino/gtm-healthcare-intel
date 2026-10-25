@@ -83,6 +83,7 @@ add('practice-share-display','practice','Show payer revenue shares for each prov
 add('practice-single-range','practice','Show revenue between July and December 2025.',r=>{calculated(r);assert.equal(results(r)[0].scopeTotal,3411130);});
 
 add('independent-cohorts','gtm','Show marketing spend and closed-cohort win rate in Q1 2025.',r=>{calculated(r);assert.ok(results(r).some(q=>q.query.report==='marketing'));assert.ok(results(r).some(q=>q.query.report==='performance'));assert.match(r.content[0].text,/Marketing spend/);assert.match(r.content[0].text,/24.8%/);});
+add('independent-pipeline-cohorts','gtm','Show created-lead pipeline and closed-cohort win rate in Q1 2025.',r=>{calculated(r);assert.match(r.content[0].text,/Created-lead pipeline \$2,200,000/);assert.match(r.content[0].text,/24.8%/);assert.doesNotMatch(r.content[0].text,/Open qualified pipeline/);});
 
 const fixIds=new Set(['practice-independent-ranges','practice-named-periods','practice-word-threshold','gtm-not-quota','gtm-not-target','gtm-marketing-win-rate','gtm-booking-growth','each-month','qbr','independent-cohorts']);
 const selected=cases.filter(c=>suite==='fixes'?fixIds.has(c.id):suite!=='smoke'||c.smoke),report=[];

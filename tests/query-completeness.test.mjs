@@ -51,6 +51,9 @@ test('a valid report cannot hide a dropped measure; explicitly independent cohor
   const complete=await answer('gtm','Show marketing spend and closed-cohort win rate in Q1 2025.',[marketing,gtm('performance',{groupBy:['quarter']})]);
   assert.equal(complete.source,'validated-query');assert.match(complete.content[0].text,/Marketing spend \$240,000/);assert.match(complete.content[0].text,/win rate 24.8%/);
   assert.doesNotMatch(complete.content[0].text,/MQLs|Mean won ACV/);
+  const independent=await answer('gtm','Show created-lead pipeline and closed-cohort win rate in Q1 2025.',[marketing,gtm('performance',{groupBy:['quarter']})]);
+  assert.equal(independent.source,'validated-query');assert.match(independent.content[0].text,/Created-lead pipeline \$2,200,000/);assert.match(independent.content[0].text,/win rate 24.8%/);assert.doesNotMatch(independent.content[0].text,/Open qualified pipeline/);
+  const wrongCohort=await answer('gtm','Show created-lead pipeline in Q1 2025.',[gtm('performance',{groupBy:['quarter']})]);assert.equal(wrongCohort.source,'query-clarification');
 });
 
 test('written thresholds preserve value, direction and strictness without inventing a ranking',async()=>{
@@ -103,4 +106,14 @@ test('ranked responses lead with winners while keeping every supporting value in
   assert.equal((qbr.text.match(/\$2,140,000/g)||[]).length,1);assert.match(qbr.text,/5 of 6 reps/);assert.match(qbr.text,/\$314,000.*\$54,000.*\$260,000/);
   assert.doesNotMatch(qbr.text,/Report: qbr|overperformance \$0|Review comparable underlying records/);
   assert.ok(qbr.details[0].rows.some(row=>row.startsWith('Chen:')));
+});
+
+test('compact answers retain explicitly requested extra metrics and avoid irrelevant share notes',()=>{
+  const qbr=validateResultCoverage('gtm','show bookings, pipeline and mean won cycle against target',executeQueryTool('query_gtm',{queries:[gtm('qbr',{groupBy:[]})],explain:false}));
+  const text=renderQueryResult(qbr).text;
+  assert.match(text,/Open qualified pipeline: \$7,200,000/);assert.match(text,/Mean won cycle: 48.45 days/);
+  const ranked=validateResultCoverage('gtm','show bookings for the rep with the longest sales cycle',executeQueryTool('query_gtm',{queries:[gtm('performance',{ranking:ranking('avgCycle','highest')})],explain:false}));
+  assert.match(renderQueryResult(ranked).text,/Kim.*68 days; 2 wins; Bookings \(won ACV\) \$250,000/);
+  const payer=executeQueryTool('query_practice',{queries:[practice('payerRevenue',Array.from({length:12},(_,i)=>i),{groupBy:['payer'],ranking:ranking('payerRevenue','lowest')})],explain:false});
+  assert.doesNotMatch(renderQueryResult(payer).text,/Shares use/);
 });
