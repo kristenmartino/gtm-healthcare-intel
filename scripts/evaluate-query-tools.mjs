@@ -118,10 +118,15 @@ add('numeric-decimal','practice','Which providers had at least $1.5M in revenue 
 add('written-small-scale','practice','Show providers with at least zero point zero five million in revenue in January 2025.',r=>{calculated(r);const q=metric(r,'revenue');assert.equal(q.query.predicate.value,50000);assert.equal(q.rows.length,5);});
 add('written-rate','gtm','Which reps had quota attainment of at least ninety-five point zero percent in Q1 2025?',r=>{calculated(r);const q=results(r)[0];assert.equal(q.query.predicate.value,95);assert.equal(q.query.predicate.metric,'attainment');same(q.rows.map(row=>row.name),['Chen','Okafor']);});
 add('unsupported-total-prefilter','gtm','Show the combined quota for reps who missed quota in Q1 2025.',clarification);
+add('not-more-decimal','practice','Which providers had not more than one point five million in revenue in 2025?',r=>{calculated(r);const q=metric(r,'revenue');assert.equal(q.query.predicate.operator,'lte');assert.equal(q.query.predicate.value,1500000);same(q.rows.map(row=>row.name),['Lin','Shah','Brooks','Yamamoto']);});
+add('not-more-inclusive','practice','Which providers had not more than seven no-shows in January 2025?',r=>{calculated(r);const q=metric(r,'noShows');assert.equal(q.query.predicate.operator,'lte');assert.equal(q.query.predicate.value,7);same(q.rows.map(row=>row.name),['Lin']);assert.equal(q.rows[0].noShows,7);});
+add('not-more-rate','gtm','Which reps had not more than ninety-five percent quota attainment in Q1 2025?',r=>{calculated(r);const q=results(r)[0];assert.equal(q.query.predicate.operator,'lte');assert.equal(q.query.predicate.value,95);assert.equal(q.rows.length,5);assert.ok(q.rows.some(row=>row.name==='Okafor'&&row.attainment===95));});
+add('not-more-exclusion','gtm','Show bookings not from Referral and not more than $500K in Q1 2025.',clarification);
 const quotaDecimalIds=new Set(['combined-quota','combined-quota-details','company-quota-total','written-decimal','written-fraction','numeric-decimal','written-small-scale','written-rate','unsupported-total-prefilter']);
+const comparisonIds=new Set(['not-more-decimal','not-more-inclusive','not-more-rate','not-more-exclusion','combined-quota','written-decimal','no-more','gtm-not-quota']);
 
 const fixIds=new Set(['practice-independent-ranges','practice-named-periods','practice-word-threshold','gtm-not-quota','gtm-not-target','gtm-marketing-win-rate','gtm-booking-growth','each-month','qbr','independent-cohorts']);
-const selected=cases.filter(c=>suite==='quota-decimal'?quotaDecimalIds.has(c.id):suite==='fixes'?fixIds.has(c.id):suite!=='smoke'||c.smoke),report=[];
+const selected=cases.filter(c=>suite==='comparison'?comparisonIds.has(c.id):suite==='quota-decimal'?quotaDecimalIds.has(c.id):suite==='fixes'?fixIds.has(c.id):suite!=='smoke'||c.smoke),report=[];
 let windowStart=Date.now();
 for(const [index,c]of selected.entries()){
   if(index&&index%8===0){const wait=Math.max(0,65_000-(Date.now()-windowStart));if(wait){console.log(`Waiting ${Math.ceil(wait/1000)}s for the public rate limit.`);await new Promise(resolve=>setTimeout(resolve,wait));}windowStart=Date.now();}

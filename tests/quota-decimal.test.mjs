@@ -74,7 +74,7 @@ const quantities=[
 test('written decimals, fractions, scales and numeric equivalents preserve complete threshold values',()=>{
   for(const [phrase,value] of quantities){
     assert.equal(parseWrittenQuantity(phrase),value,phrase);
-    for(const [operator,code] of [['at least','gte'],['at most','lte'],['under','lt'],['over','gt'],['exactly','eq'],['>=','gte']]){
+    for(const [operator,code] of [['at least','gte'],['at most','lte'],['not more than','lte'],['under','lt'],['over','gt'],['exactly','eq'],['>=','gte']]){
       const text=`Show revenue ${operator} ${phrase} in 2025.`;
       assert.deepEqual(questionConstraints(text).comparisons,[{operator:code,value}],text);
     }
