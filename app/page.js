@@ -48,6 +48,10 @@ export default function Home() {
             <p>Public source references describe the intended inputs. They do not establish a live data connection.</p>
           </aside>
         </section>
+        <section className="portfolio-section portfolio-contribution" aria-labelledby="contribution-title">
+          <div className="portfolio-section-heading"><h2 id="contribution-title">My contribution</h2></div>
+          <p>I directed development and review of this portfolio, including the query tools, QBR, and demo explanations. I prioritized calculation accuracy, reliable query handling, and clear presentation.</p>
+        </section>
         <section className="portfolio-section" aria-labelledby="case-studies-title">
           <div className="portfolio-section-heading"><h2 id="case-studies-title">Two questions to start with</h2><span>Interactive case studies</span></div>
           <div className="portfolio-cases">

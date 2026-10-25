@@ -27,6 +27,7 @@ button:not(:disabled), select, summary { cursor: pointer; }
 .portfolio-section-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; padding: 20px 0; border-top: 1px solid var(--rule); }
 .portfolio-section-heading h2 { font-size: 16px; font-weight: 600; letter-spacing: -.015em; }
 .portfolio-section-heading > span { font-size: 12px; color: var(--muted); }
+.portfolio-contribution p { max-width: 760px; font-size: 14px; line-height: 1.8; color: var(--muted); }
 .portfolio-case { display: grid; grid-template-columns: 44px minmax(0, 1fr) 245px; gap: 26px; padding: 34px 0 38px; border-bottom: 1px solid var(--rule); }
 .portfolio-case-number { font-size: 12px; line-height: 1.8; color: var(--accent); font-variant-numeric: tabular-nums; }
 .portfolio-case-label { color: var(--accent); font-size: 12px; line-height: 1.65; margin-bottom: 13px; }
