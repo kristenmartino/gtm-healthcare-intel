@@ -81,7 +81,7 @@ gtm-healthcare-intel/
 ```bash
 npm install
 cp .env.local.example .env.local
-# Add your Anthropic API key to .env.local (required for AskGTM; AskPractice needs no key)
+# Add your Anthropic API key to .env.local (required for AskGTM and AskPractice)
 npm run dev
 ```
 
