@@ -104,3 +104,13 @@ test('ranked responses lead with winners while keeping every supporting value in
   assert.doesNotMatch(qbr.text,/Report: qbr|overperformance \$0|Review comparable underlying records/);
   assert.ok(qbr.details[0].rows.some(row=>row.startsWith('Chen:')));
 });
+
+test('compact answers retain explicitly requested extra metrics and avoid irrelevant share notes',()=>{
+  const qbr=validateResultCoverage('gtm','show bookings, pipeline and mean won cycle against target',executeQueryTool('query_gtm',{queries:[gtm('qbr',{groupBy:[]})],explain:false}));
+  const text=renderQueryResult(qbr).text;
+  assert.match(text,/Open qualified pipeline: \$7,200,000/);assert.match(text,/Mean won cycle: 48.45 days/);
+  const ranked=validateResultCoverage('gtm','show bookings for the rep with the longest sales cycle',executeQueryTool('query_gtm',{queries:[gtm('performance',{ranking:ranking('avgCycle','highest')})],explain:false}));
+  assert.match(renderQueryResult(ranked).text,/Kim.*68 days; 2 wins; Bookings \(won ACV\) \$250,000/);
+  const payer=executeQueryTool('query_practice',{queries:[practice('payerRevenue',Array.from({length:12},(_,i)=>i),{groupBy:['payer'],ranking:ranking('payerRevenue','lowest')})],explain:false});
+  assert.doesNotMatch(renderQueryResult(payer).text,/Shares use/);
+});
