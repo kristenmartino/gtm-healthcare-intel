@@ -94,6 +94,14 @@ test('all pairs of independent inclusive month ranges stay bound to their own me
   assert.equal(named,undefined);
 });
 
+test('valid per-period query partitions cover each measure completely without widening another measure',()=>{
+  const queries=Array.from({length:4},(_,quarter)=>practice('denials',[0,1,2].map(m=>quarter*3+m),{groupBy:['quarter','provider'],ranking:ranking('denials','highest',['quarter'])}));
+  assert.doesNotThrow(()=>validateQuestionConstraints('practice','Who had the most denials in each quarter of 2025?',{queries}));
+  assert.equal(executeQueryTool('query_practice',{queries,explain:false}).results.flatMap(r=>r.rankings).length,4);
+  const mixed=[...queries,practice('collections',[0,1,2])];
+  assert.throws(()=>validateQuestionConstraints('practice','Show denial counts and collections for 2025.',{queries:mixed}),/shared period/);
+});
+
 test('ranked responses lead with winners while keeping every supporting value inspectable',()=>{
   const result=executeQueryTool('query_practice',{queries:[practice('revenue',Array.from({length:12},(_,i)=>i),{groupBy:['month','provider'],ranking:ranking('revenue','lowest',['month'])})],explain:false});
   const rendered=renderQueryResult(result);
