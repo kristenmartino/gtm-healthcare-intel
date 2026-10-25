@@ -98,6 +98,8 @@ test('valid per-period query partitions cover each measure completely without wi
   const queries=Array.from({length:4},(_,quarter)=>practice('denials',[0,1,2].map(m=>quarter*3+m),{groupBy:['quarter','provider'],ranking:ranking('denials','highest',['quarter'])}));
   assert.doesNotThrow(()=>validateQuestionConstraints('practice','Who had the most denials in each quarter of 2025?',{queries}));
   assert.equal(executeQueryTool('query_practice',{queries,explain:false}).results.flatMap(r=>r.rankings).length,4);
+  const filtered=queries.map(q=>({...q,groupBy:['provider'],ranking:ranking('denials','highest')}));
+  assert.doesNotThrow(()=>validateQuestionConstraints('practice','Who had the most denials in each quarter of 2025?',{queries:filtered}));
   const mixed=[...queries,practice('collections',[0,1,2])];
   assert.throws(()=>validateQuestionConstraints('practice','Show denial counts and collections for 2025.',{queries:mixed}),/shared period/);
 });
