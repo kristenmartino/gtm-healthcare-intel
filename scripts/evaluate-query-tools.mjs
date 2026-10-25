@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { GTM_DATA } from '../lib/gtm-scenario.mjs';
+import { GTM_DATA, summarize } from '../lib/gtm-scenario.mjs';
 import { aggregatePractice } from '../lib/practice-aggregates.mjs';
 import { PRACTICE_DATA } from '../lib/practice-scenario.mjs';
 import { executeQueryTool, renderQueryResult } from '../lib/query-engine.mjs';
@@ -90,8 +90,32 @@ add('practice-single-range','practice','Show revenue between July and December 2
 add('independent-cohorts','gtm','Show marketing spend and closed-cohort win rate in Q1 2025.',r=>{calculated(r);assert.ok(results(r).some(q=>q.query.report==='marketing'));assert.ok(results(r).some(q=>q.query.report==='performance'));assert.match(r.content[0].text,/Marketing spend/);assert.match(r.content[0].text,/24.8%/);});
 add('independent-pipeline-cohorts','gtm','Show created-lead pipeline and closed-cohort win rate in Q1 2025.',r=>{calculated(r);assert.match(r.content[0].text,/Created-lead pipeline \$2,200,000/);assert.match(r.content[0].text,/24.8%/);assert.doesNotMatch(r.content[0].text,/Open qualified pipeline/);});
 
+
+add('independent-rep-metrics','gtm','Show Sarah Chen bookings and David Kim win rate in Q1 2025.',r=>{calculated(r);const qs=results(r);const kim=summarize(GTM_DATA.deals.filter(d=>d.rep==='David Kim'&&d.quarter==='Q1 2025'));assert.ok(qs.some(q=>q.rows.some(row=>(row.name.includes('Chen')||q.query.reps.length===1&&q.query.reps[0]==='Sarah Chen')&&row.bookings===504000)));assert.ok(qs.some(q=>q.rows.some(row=>(row.name.includes('Kim')||q.query.reps.length===1&&q.query.reps[0]==='David Kim')&&row.winRate===kim.winRate*100)));});
+add('weighted-filtered-retention','gtm','What is the blended NRR for Dermatology and Orthopedics together in Q1 2025?',r=>{calculated(r);assert.ok(results(r).flatMap(q=>q.rows).some(row=>row.nrr===(1124000+830400)/(1000000+800000)*100));});
+add('gtm-january-only','gtm','Show bookings for January 2025.',clarification);
+add('gtm-full-year','gtm','What were full-year 2025 bookings?',clarification);
+add('practice-specific-day','practice','Show revenue on January 15, 2025.',clarification);
+add('practice-daily','practice','Show daily revenue for January 2025.',clarification);
+add('same-measure-independent-scopes','practice','Show Lin revenue for January through March and Shah revenue for July through September 2025.',r=>{calculated(r);const qs=results(r).filter(q=>q.metric==='revenue');for(const [provider,months]of [['Dr. Anya Lin',[0,1,2]],['Dr. Priya Shah',[6,7,8]]]){const expected=aggregatePractice({providers:[provider],monthIndexes:months}).total.revenue;assert.ok(qs.some(q=>q.query.providers.length===1&&q.query.providers[0]===provider&&q.query.months.length===3&&months.every(m=>q.query.months.includes(m))&&q.scopeTotal===expected),'Each provider must retain its own date range, without a Cartesian expansion.');}});
+add('practice-no-show-percentage','practice','Show no-show percentage by provider for 2025.',clarification);
+add('absolute-bookings-change','gtm','How much did bookings increase from Q4 2024 to Q1 2025?',r=>{if(r.source==='query-clarification')return;calculated(r);assert.match(r.content[0].text,/\$160,000/,'A calculated answer must include the requested $160,000 change rather than only the input totals.');});
+
+const combinedQuota=r=>{calculated(r);const q=results(r).find(q=>q.query.report==='quota');assert.equal(q.rows.length,1);const row=q.rows[0];assert.equal(row.quota,800000);assert.equal(row.bookings,754000);assert.equal(row.attainment,94.25);assert.equal(row.coverage,3);assert.equal(row.grossShortfall,100000);assert.equal(row.overperformance,54000);assert.equal(row.gap,46000);};
+const decimalThreshold=r=>{calculated(r);const q=metric(r,'revenue');assert.equal(q.query.predicate.operator,'gte');assert.equal(q.query.predicate.value,1500000);same(q.rows.map(row=>row.name),['Singh']);};
+add('combined-quota','gtm','What is the combined quota and attainment for Sarah Chen and David Kim in Q1 2025?',combinedQuota);
+add('combined-quota-details','gtm','Show combined quota, attainment, pipeline coverage, gross rep shortfalls, overperformance and net gap for Sarah Chen and David Kim in Q1 2025.',r=>{combinedQuota(r);assert.match(r.content[0].text,/Gross rep shortfalls \$100,000/);assert.match(r.content[0].text,/Rep overperformance \$54,000/);assert.match(r.content[0].text,/Target gap \$46,000/);});
+add('company-quota-total','gtm','What is the total company quota and attainment for Q1 2025?',r=>{calculated(r);const row=results(r).find(q=>q.query.report==='quota').rows[0];assert.equal(row.quota,2400000);assert.equal(row.attainment,2140000/2400000*100);assert.equal(row.grossShortfall,314000);assert.equal(row.shortfall,260000);});
+add('written-decimal','practice','Which providers had at least one point five million in revenue in 2025?',decimalThreshold);
+add('written-fraction','practice','Which providers had at least one and a half million in revenue in 2025?',decimalThreshold);
+add('numeric-decimal','practice','Which providers had at least $1.5M in revenue in 2025?',decimalThreshold);
+add('written-small-scale','practice','Show providers with at least zero point zero five million in revenue in January 2025.',r=>{calculated(r);const q=metric(r,'revenue');assert.equal(q.query.predicate.value,50000);assert.equal(q.rows.length,5);});
+add('written-rate','gtm','Which reps had quota attainment of at least ninety-five point zero percent in Q1 2025?',r=>{calculated(r);const q=results(r)[0];assert.equal(q.query.predicate.value,95);assert.equal(q.query.predicate.metric,'attainment');same(q.rows.map(row=>row.name),['Chen','Okafor']);});
+add('unsupported-total-prefilter','gtm','Show the combined quota for reps who missed quota in Q1 2025.',clarification);
+const quotaDecimalIds=new Set(['combined-quota','combined-quota-details','company-quota-total','written-decimal','written-fraction','numeric-decimal','written-small-scale','written-rate','unsupported-total-prefilter']);
+
 const fixIds=new Set(['practice-independent-ranges','practice-named-periods','practice-word-threshold','gtm-not-quota','gtm-not-target','gtm-marketing-win-rate','gtm-booking-growth','each-month','qbr','independent-cohorts']);
-const selected=cases.filter(c=>suite==='fixes'?fixIds.has(c.id):suite!=='smoke'||c.smoke),report=[];
+const selected=cases.filter(c=>suite==='quota-decimal'?quotaDecimalIds.has(c.id):suite==='fixes'?fixIds.has(c.id):suite!=='smoke'||c.smoke),report=[];
 let windowStart=Date.now();
 for(const [index,c]of selected.entries()){
   if(index&&index%8===0){const wait=Math.max(0,65_000-(Date.now()-windowStart));if(wait){console.log(`Waiting ${Math.ceil(wait/1000)}s for the public rate limit.`);await new Promise(resolve=>setTimeout(resolve,wait));}windowStart=Date.now();}
